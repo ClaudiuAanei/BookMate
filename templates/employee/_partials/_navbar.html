@@ -1,0 +1,137 @@
+{% load static %}
+
+<link rel="stylesheet" href="{% static 'css/employee/shell/navbar.css' %}">
+
+<nav class="bg-[#09090b]/90 backdrop-blur-md sticky top-0 z-40 border-b border-white/5 h-20">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full">
+    <div class="flex justify-between items-center h-full gap-8">
+
+      <!-- LEFT: Avatar / Name -->
+<div class="group flex items-center gap-5 p-2 cursor-pointer select-none">
+        <div class="relative">
+            <div id="user-initials" class="h-12 w-12 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-400 font-serif text-lg transition-colors duration-300 group-hover:border-blue-500/50 group-hover:text-blue-200">
+                AP
+            </div>
+            <div class="absolute -bottom-1 -right-1 h-3 w-3 rounded-full bg-primary flex items-center justify-center">
+                <div class="h-1.5 w-1.5 rounded-full bg-blue-500 animate-pulse_slow"></div>
+            </div>
+        </div>
+        
+        <div class="flex flex-col justify-center">
+            <div class="relative inline-block w-fit">
+                <span id="user-name" class="text-base font-bold text-slate-300 transition-colors duration-300 group-hover:text-white">
+                    Claudiu Aanei
+                </span>
+                <span class="absolute left-0 -bottom-0.5 h-[1px] w-0 bg-blue-500 transition-all duration-300 group-hover:w-full"></span>
+            </div>
+            
+            <span class="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-medium mt-1 group-hover:text-slate-400 transition-colors">
+                Employee
+            </span>
+        </div>
+    </div>
+
+      <!-- SEARCH (client picker) -->
+      <div class="flex-1 max-w-2xl relative z-50" data-client-picker data-search-url="{% url 'search_client' %}">
+        <div class="relative w-full">
+          <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <i class="ph ph-magnifying-glass text-gray-500 text-lg"></i>
+          </div>
+
+          <input
+            type="text"
+            class="block w-full pl-10 pr-32 py-3 border border-white/10 rounded-xl leading-5 bg-[#18181b] text-gray-100 placeholder-gray-600 focus:outline-none focus:bg-[#202025] focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition duration-200 text-sm shadow-sm font-medium"
+            placeholder="Search client (name, phone, email)..."
+            autocomplete="off"
+            data-client-search-input
+          />
+
+          <!-- Clear selection (X) - hidden until a client is selected -->
+          <button
+            type="button"
+            class="absolute inset-y-0 right-20 pr-2 flex items-center cursor-pointer group/icon hidden"
+            title="Clear selected client"
+            data-client-clear-btn
+          >
+            <i class="ph ph-x text-gray-600 group-hover/icon:text-gray-300 transition-colors"></i>
+          </button>
+
+          <!-- Quick Edit - hidden until a client is selected -->
+          <button
+            type="button"
+            class="absolute inset-y-0 right-10 pr-2 flex items-center cursor-pointer group/icon hidden"
+            title="Edit selected client"
+            data-client-edit-btn
+          >
+            <i class="ph ph-pencil-simple text-gray-600 group-hover/icon:text-gray-300 transition-colors"></i>
+          </button>
+
+          <!-- Add button -->
+          <button
+            type="button"
+            class="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer group/icon"
+            title="Add new client"
+            data-client-add-btn
+          >
+            <i class="ph ph-plus text-gray-600 group-hover/icon:text-gray-300 transition-colors"></i>
+          </button>
+        </div>
+
+        <!-- RESULTS DROPDOWN -->
+        <div
+          class="absolute top-full left-0 w-full mt-2 bg-[#18181b] rounded-xl shadow-2xl border border-white/10 overflow-hidden hidden origin-top z-50 shadow-black/80"
+          data-client-results
+        >
+          <div class="bg-white/5 px-4 py-2 border-b border-white/5 flex justify-between items-center">
+            <span class="text-xs font-bold text-gray-500 uppercase tracking-wider" data-client-results-title>
+              Clients Found (0)
+            </span>
+          </div>
+
+          <div class="max-h-[300px] overflow-y-auto custom-scrollbar" data-client-results-list>
+            <!-- JS inject results here -->
+          </div>
+
+          <div class="sticky bottom-0 bg-[#18181b] border-t border-white/5 p-2">
+            <button
+              type="button"
+              class="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg bg-violet-600 text-white text-sm font-semibold hover:bg-violet-500 transition-colors shadow-lg shadow-violet-900/20"
+              data-client-add-footer-btn
+            >
+              <i class="ph ph-plus text-base"></i>
+              Add New Client
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT Spacer -->
+      <div class="w-64 flex justify-end"></div>
+
+    </div>
+  </div>
+</nav>
+
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const nameElement = document.getElementById('user-name');
+            const initialsElement = document.getElementById('user-initials');
+
+            if (nameElement && initialsElement) {
+                // Preia textul din nume (ex: "Alex Popescu")
+                const name = nameElement.innerText.trim();
+                
+                // Extrage prima literă din fiecare cuvânt și le unește
+                const initials = name.split(' ')
+                                     .filter(word => word.length > 0)
+                                     .map(word => word[0])
+                                     .join('')
+                                     .toUpperCase()
+                                     .substring(0, 2); // Păstrează maxim 2 litere
+
+                // Actualizează elementul cu inițialele
+                initialsElement.innerText = initials;
+            }
+        });
+    </script>

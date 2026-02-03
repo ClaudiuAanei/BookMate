@@ -1,0 +1,75 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Employee Dashboard</title>
+
+  <!-- Tailwind (ok pentru prototip) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            colors: {
+              primary: '#09090b',
+              secondary: '#18181b',
+              accent: '#7c3aed'
+            },
+            fontFamily: {
+              sans: ['Inter', 'sans-serif'],
+            },
+            keyframes: {
+              pulse_slow: {
+                '0%, 100%': { opacity: '1' },
+                '50%': { opacity: '.8' },
+              }
+            },
+            animation: {
+              pulse_slow: 'pulse_slow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+            }
+          }
+        }
+      }
+    </script>
+
+  {% block head %}{% endblock %}
+</head>
+
+<body class="min-h-screen">
+  {% include "employee/_partials/_navbar.html" %}
+
+  <main id="app">
+    {% block content %}{% endblock %}
+  </main>
+
+  {% include "employee/_partials/_modals.html" %}
+  {% include "employee/_partials/_toasts.html" %}
+
+
+  <!-- Core -->
+  <script src="{% static 'js/employee/core/dom.js' %}"></script>
+  <script src="{% static 'js/employee/core/http.js' %}"></script>
+  <script src="{% static 'js/employee/core/notify.js' %}"></script>
+
+  <script src="{% static 'js/employee/core/csrf.js' %}"></script>
+  <script src="{% static 'js/employee/core/http.js' %}"></script>
+
+
+  <script src="{% static 'js/employee/state/store.js' %}"></script>
+
+  <script src="{% static 'js/employee/modals/modal.js' %}"></script>
+  <script src="{% static 'js/employee/modals/client_form.js' %}"></script>
+
+  <script src="{% static 'js/employee/components/client_picker/index.js' %}"></script>
+  <script src="{% static 'js/employee/shell/navbar.js' %}"></script>
+
+  <script src="{% static 'js/employee/core/boot.js' %}"></script>
+
+  {% block scripts %}{% endblock %}
+</body>
+</html>
