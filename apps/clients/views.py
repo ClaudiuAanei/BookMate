@@ -10,18 +10,22 @@ def create_client(request):
     if request.method != "POST":
         return JsonResponse({"status": "error", "message": "Method not allowed"}, status=403)
     
-    data = json.loads(request.body)
-
-    form = ClientForm(data)
-    if form.is_valid():
-        new_client = form.save()
-
-        return JsonResponse({
-            'status': 'success', 
-            "message": "Client was successful created.", 
-            } | serialize_client(new_client))
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({'status': 'error', 'message': 'Invalid JSON'}, status=400)
     
-    return JsonResponse({"errors": form.errors}, status=400)
+    form = ClientForm(data)
+
+    if not form.is_valid():
+        return JsonResponse({"status": "errors", "errors": form.errors.get_json_data()}, status=400)
+    
+    new_client = form.save()
+    return JsonResponse({
+        'status': 'success', 
+        "message": "Client was successful created.", 
+        "client": serialize_client(new_client)})
+
 
 def update_client(request, pk):
     if request.method != "PUT":
@@ -35,9 +39,9 @@ def update_client(request, pk):
         update_client = form.save()
 
         return JsonResponse({
-            "status": "updated",
+            "status": "success",
             "message": "Client updated succesfull",
-            } | serialize_client(update_client))
+            "client": serialize_client(update_client)})
     
     return JsonResponse({"errors": form.errors}, status=400)
 

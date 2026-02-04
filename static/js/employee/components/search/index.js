@@ -153,7 +153,7 @@ input.addEventListener("input", () => {
            data-client-row data-client-id="${c.id}">
         <div class="flex items-center justify-between p-4">
           <div class="flex items-center gap-3 overflow-hidden">
-            <div class="h-10 w-10 rounded-full bg-[#27272a] flex items-center justify-center text-gray-400 group-hover/item:text-purple-400 group-hover/item:bg-[#3f3f46] transition-colors flex-shrink-0">
+            <div class="h-10 w-10 rounded-full bg-[#27272a] flex items-center justify-center text-gray-400 group-hover/item:text-blue-400 group-hover/item:bg-[#3f3f46] transition-colors flex-shrink-0">
               <i class="ph ph-user text-xl"></i>
             </div>
             <div class="min-w-0">
@@ -171,7 +171,7 @@ input.addEventListener("input", () => {
             <i class="ph ph-pencil-simple text-lg"></i>
           </button>
         </div>
-        <div class="absolute left-0 top-0 bottom-0 w-1 bg-purple-500 opacity-0 group-hover/item:opacity-100 transition-opacity"></div>
+        <div class="absolute left-0 top-0 bottom-0 w-1 bg-blue-500 opacity-0 group-hover/item:opacity-100 transition-opacity"></div>
       </div>
     `;
   }
