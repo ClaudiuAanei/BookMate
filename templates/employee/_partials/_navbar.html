@@ -104,9 +104,139 @@
           </div>
         </div>
       </div>
+      <!-- RIGHT: Services Selector -->
+      <div class="w-64 flex justify-end items-center">
+        <!-- SERVICES SELECTOR DROPDOWN -->
+        <div class="relative group z-50 w-72" data-services-dropdown>
+          <!-- Trigger Button -->
+          <button
+            type="button"
+            class="w-full h-12 flex items-center justify-between px-4 rounded-xl bg-[#18181b] border border-white/10 hover:border-blue-500/50 hover:bg-[#202025] transition-all outline-none group-hover:ring-2 group-hover:ring-blue-500/10 shadow-lg shadow-black/20 relative"
+            data-services-btn
+            aria-haspopup="listbox"
+            aria-expanded="false"
+          >
+            <div class="flex items-center gap-3">
+              <div class="relative">
+                <div class="p-0.5 rounded-lg bg-blue-500/10 text-blue-400 group-hover:bg-blue-500 group-hover:text-white transition-colors">
+                  <i class="ph ph-list-checks text-base"></i>
+                </div>
 
-      <!-- RIGHT Spacer -->
-      <div class="w-64 flex justify-end"></div>
+                <!-- BADGE -->
+                <div
+                  class="absolute -top-1.5 -right-1.5 h-4 w-4 rounded-full bg-red-500 text-white text-[9px] font-bold flex items-center justify-center opacity-0 scale-0 transition-all duration-300 shadow-sm border border-[#18181b] z-10"
+                  data-services-badge
+                >0</div>
+              </div>
+
+              <div class="flex flex-col items-start truncate">
+                <span class="font-semibold text-sm text-gray-200 group-hover:text-white truncate" data-services-label>
+                  Select Services
+                </span>
+                <span class="text-[11px] text-gray-400 group-hover:text-gray-400" data-services-meta>
+                  Multiple allowed
+                </span>
+              </div>
+            </div>
+
+            <i class="ph ph-caret-down text-gray-500 group-hover:text-blue-400 transition-transform duration-300 group-hover:rotate-180 text-xs ml-2"></i>
+          </button>
+
+          <!-- Dropdown Menu -->
+          <!-- Hover bridge: acoperă spațiul dintre button și menu (mt-2) -->
+          <div class="absolute right-0 top-full h-2 w-full" data-services-bridge></div>
+
+          <div
+            class="services-menu absolute top-full right-0 mt-2 w-full origin-top-right transform scale-95 opacity-0 invisible transition-all duration-200 ease-out"
+            data-services-menu
+          >
+            <div class="bg-[#18181b] border border-white/10 rounded-xl shadow-2xl shadow-black/90 overflow-hidden ring-1 ring-white/5 backdrop-blur-xl">
+
+              <div class="px-4 py-2.5 border-b border-white/5 bg-white/[0.02] flex justify-between items-center">
+                <span class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Available Options</span>
+                <span class="text-[10px] text-blue-400/80 bg-blue-500/10 px-1.5 py-0.5 rounded border border-blue-500/20">
+                  Multi-select
+                </span>
+              </div>
+
+              <!-- LIST (server-rendered, NO JSON) -->
+              <div class="p-1.5 space-y-1 max-h-64 overflow-y-auto custom-scrollbar" data-services-list role="listbox">
+                {% for s in services %}
+                  <label
+                    class="flex items-center justify-between px-3 py-3 rounded-lg hover:bg-blue-500/10 cursor-pointer group/item transition-colors relative border border-transparent hover:border-blue-500/20"
+                    data-service-row
+                  >
+                    <div class="flex items-center gap-3">
+                      <input
+                        type="checkbox"
+                        class="peer hidden"
+                        name="service_type"
+                        value="{{ s.id }}"
+                        data-service-id="{{ s.id }}"
+                        data-service-name="{{ s.name }}"
+                        data-service-price="{{ s.price }}"
+                        data-service-duration="{{ s.duration }}"
+                      >
+                      <div class="w-5 h-5 rounded-md border border-gray-600 group-hover/item:border-blue-500 flex items-center justify-center transition-all peer-checked:border-blue-500 peer-checked:bg-blue-500 shadow-sm peer-checked:[&>i]:opacity-100">
+                        <i class="ph-bold ph-check text-white text-[10px] opacity-0 transform scale-50 peer-checked:scale-100 transition-all"></i>
+                      </div>
+
+                      <div class="flex flex-col">
+                        <span class="text-sm font-medium text-gray-300 group-hover/item:text-white peer-checked:text-blue-400 transition-colors">
+                          {{ s.name }}
+                        </span>
+                        {% if s.description %}
+                          <span class="text-[10px] text-gray-600 group-hover/item:text-gray-500">{{ s.description }}</span>
+                        {% else %}
+                          <span class="text-[10px] text-gray-600 group-hover/item:text-gray-500">—</span>
+                        {% endif %}
+                      </div>
+                    </div>
+
+                    <div class="flex flex-col items-end gap-0.5">
+                      <span
+                        class="text-sm font-bold text-emerald-400"
+                        data-service-price-text
+                      >
+                        {{ s.price }}
+                      </span>
+                      <div class="flex items-center gap-1 text-[10px] text-gray-500">
+                        <i class="ph ph-clock"></i>
+                        <span data-service-duration-text>{{ s.duration }}</span>
+                      </div>
+                    </div>
+
+                    <div class="absolute inset-0 border border-blue-500/30 rounded-lg opacity-0 peer-checked:opacity-100 pointer-events-none shadow-[0_0_10px_rgba(59,130,246,0.1)]"></div>
+                  </label>
+                {% endfor %}
+              </div>
+
+              <!-- Footer -->
+              <div class="p-2 border-t border-white/5 bg-white/[0.02] flex items-center gap-2">
+                <button
+                  type="button"
+                  class="px-3 py-2.5 rounded-lg text-red-400 hover:bg-red-500/10 hover:text-red-300 text-xs font-semibold transition-all opacity-0 pointer-events-none whitespace-nowrap"
+                  data-services-clear
+                  title="Reset Selection"
+                >
+                  Clear
+                </button>
+
+                <button
+                  type="button"
+                  class="flex-1 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-xs font-bold text-white transition-all shadow-lg shadow-blue-900/20 flex items-center justify-center gap-2"
+                  data-services-confirm
+                >
+                  <i class="ph ph-check text-sm"></i>
+                  Confirm Selection
+                </button>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </div>
+
 
     </div>
   </div>

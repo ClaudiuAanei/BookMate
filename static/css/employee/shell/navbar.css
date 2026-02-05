@@ -36,3 +36,17 @@ body {
   visibility: visible;
 }
 /* ========= Toast ======== */
+
+/* locked open (keep open after interaction) */
+.group.keep-open .group-hover\:visible {
+  visibility: visible;
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* force close (on confirm) */
+.group.force-close .group-hover\:visible {
+  visibility: hidden !important;
+  opacity: 0 !important;
+  transform: scale(0.95) !important;
+}

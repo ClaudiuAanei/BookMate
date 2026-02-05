@@ -1,37 +1,64 @@
 window.Employee = window.Employee || {};
 
-const STORAGE_KEY = "employee:selectedClient"; // păstrează un obiect mic
+const STORAGE = {
+  selectedClient: "employee:selectedClient",
+  confirmedServices: "employee:confirmedServices",
+};
 
 Employee.store = {
-  selectedClient: null, // {id, first_name, last_name, phone, email}
+  selectedClient: null,
+  confirmedServices: [],
 
   load() {
+    // ---- client
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
+      const raw = localStorage.getItem(STORAGE.selectedClient);
       this.selectedClient = raw ? JSON.parse(raw) : null;
     } catch {
       this.selectedClient = null;
-      localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem(STORAGE.selectedClient);
+    }
+
+    // ---- confirmed services
+    try {
+      const rawS = localStorage.getItem(STORAGE.confirmedServices);
+      this.confirmedServices = rawS ? JSON.parse(rawS) : [];
+      if (!Array.isArray(this.confirmedServices)) {
+        this.confirmedServices = [];
+      }
+    } catch {
+      this.confirmedServices = [];
+      localStorage.removeItem(STORAGE.confirmedServices);
     }
   },
 
   persist() {
+    // client
     if (this.selectedClient && this.selectedClient.id != null) {
-      // salvează DOAR câmpuri utile (evită să îngropi junk în storage)
       const c = this.selectedClient;
-      const minimal = {
+      localStorage.setItem(STORAGE.selectedClient, JSON.stringify({
         id: c.id,
         first_name: c.first_name || "",
         last_name: c.last_name || "",
         phone: c.phone || "",
         email: c.email || "",
-      };
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(minimal));
+      }));
     } else {
-      localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem(STORAGE.selectedClient);
+    }
+
+    // confirmed services
+    if (this.confirmedServices.length) {
+      localStorage.setItem(
+        STORAGE.confirmedServices,
+        JSON.stringify(this.confirmedServices)
+      );
+    } else {
+      localStorage.removeItem(STORAGE.confirmedServices);
     }
   },
 
+  // -------- client
   setClient(client) {
     this.selectedClient = client || null;
     this.persist();
@@ -44,8 +71,26 @@ Employee.store = {
     this.setClient(null);
   },
 
-  // pentru backend: folosești mereu asta
   get selectedClientId() {
     return this.selectedClient?.id ?? null;
+  },
+
+  // -------- services (CONFIRMED)
+  setConfirmedServices(ids) {
+    this.confirmedServices = Array.isArray(ids) ? ids : [];
+    this.persist();
+    document.dispatchEvent(
+      new CustomEvent("employee:services-confirmed", {
+        detail: this.confirmedServices
+      })
+    );
+  },
+
+  clearConfirmedServices() {
+    this.setConfirmedServices([]);
+  },
+
+  get confirmedServiceIds() {
+    return this.confirmedServices || [];
   }
 };
