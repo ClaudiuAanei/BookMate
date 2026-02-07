@@ -81,12 +81,13 @@ class EmployeeHoliday(models.Model):
     def _compute_days_off_between(self, start, end, exclude_public_holidays=True) -> float:
         wc = self.employee.program
         workdays = set(wc.wdays or [])
+
         if not workdays:
             return 0
 
-        holidays = set()
+        public_holidays = set()
         if exclude_public_holidays:
-            holidays = set(
+            public_holidays = set(
                 PublicHoliday.objects.filter(date__range=(start, end))
                 .values_list("date", flat=True)
             )
@@ -94,10 +95,9 @@ class EmployeeHoliday(models.Model):
         cur = start
         count = 0
         while cur <= end:
-            if cur.isoweekday() in workdays and cur not in holidays:
+            if str(cur.isoweekday()) in workdays and cur not in public_holidays:
                 count += 1
             cur += timedelta(days=1)
-
         if not self.is_full_day:
             return 0.5 if count == 1 else 0.0
 

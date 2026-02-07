@@ -1,12 +1,378 @@
 {% extends "employee/base.html" %}
-
 {% load static %}
 
+{% block head %}
+  <link rel="stylesheet" href="{% static 'css/employee/calendar/calendar.css' %}">
+{% endblock %}
+
 {% block content %}
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-    <div class="rounded-2xl border border-white/10 bg-[#09090b] p-6">
-      <h1 class="text-xl font-bold text-gray-100">Calendar</h1>
-      <p class="text-gray-500 text-sm mt-2">My project is on the way</p>
+<section
+  class="cal-root relative overflow-hidden bg-[#09090b] text-slate-300 min-h-[calc(100vh-80px)]"
+  data-employee-calendar
+>
+
+        <!-- CONTROLS -->
+  <header
+    class="cal-controls relative z-10 grid h-[58px] grid-cols-[1fr_auto_1fr] items-center gap-3 border-b border-zinc-800 bg-[#18181b] px-6 py-2"
+    >
+    <div class="cal-controls__left"></div>
+    <div class="cal-controls__center flex items-center gap-3">
+      <div class="cal-controlsBox flex items-center gap-2.5 rounded-[10px] border border-slate-400/20 bg-[rgba(9,9,11,0.40)] p-1">
+      <!-- Quick Nav -->
+        <div class="cal-dateWrap relative flex h-9 min-w-max items-center" data-cal-date-wrap>
+          <input
+            type="date"
+            class="absolute inset-0 h-full w-full opacity-0 pointer-events-none"
+            data-cal-date
+          />
+          <button
+            type="button"
+            class="relative inline-flex h-9 min-w-max select-none items-center gap-2 rounded-[10px] border border-blue-500/20 bg-blue-600/10 px-3 text-[11px] font-black uppercase tracking-[.04em] text-blue-300 transition-transform duration-150 
+               active:scale-95 hover:border-blue-600/20 hover:bg-blue-700/10 hover:text-white"
+            data-cal-quick-nav-btn
+          >
+            <i class="ph ph-calendar-check"></i>
+            Quick Navigation
+          </button>
+        </div>
+
+
+        <button type="button"
+          class="cal-todayBtn h-9 cursor-pointer rounded-[10px] border border-slate-400/20 bg-transparent px-3 text-[11px] font-black uppercase text-slate-400 hover:bg-white/10 hover:text-white transition-transform duration-150 
+               active:scale-95"
+          data-cal-today
+        >Today</button>
+
+        <div class="cal-rangeNav flex h-9 items-center gap-1.5">
+          <button type="button"
+            class="cal-rangeBtn grid h-[34px] w-[34px] place-items-center rounded-[10px] bg-transparent text-slate-500 hover:bg-white/10 hover:text-blue-400 transition-transform duration-150 
+               active:scale-95"
+            data-cal-prev
+            title="Prev"
+          ><i class="ph ph-caret-left"></i></button>
+
+          <div class="cal-rangeText flex h-[34px] min-w-[160px] items-center justify-center px-2.5 text-[11px] font-black uppercase tracking-[.06em] text-slate-300"
+            data-cal-range
+          >-- - --</div>
+
+          <button type="button"
+            class="cal-rangeBtn grid h-[34px] w-[34px] place-items-center rounded-[10px] bg-transparent text-slate-500 hover:bg-white/10 hover:text-blue-400 transition-transform duration-150 
+               active:scale-95"
+            data-cal-next
+            title="Next"
+          ><i class="ph ph-caret-right"></i></button>
+        </div>
+      </div>
+    </div>
+
+    
+    <div class="cal-controls__right"></div>
+
+  </header>
+
+  <!-- SMART FLOATING PILL -->
+  <div
+      class="cal-pill fixed left-1/2 top-[150px] -translate-x-1/2 -translate-y-[120px] opacity-0
+            z-[100] flex max-w-[min(900px,94vw)] items-center gap-4 rounded-full border border-zinc-800 bg-[#18181b]
+            px-3 py-2 pl-[18px] shadow-sm transition-all duration-500
+            [transition-timing-function:cubic-bezier(0.175,0.885,0.32,1.275)]"
+      data-cal-pill
+    >
+
+    <div class="cal-pill__inner flex items-center gap-4 w-full">
+    <!-- icon (JS poate să-l arate/ascundă; dacă vrei fără JS aici, trebuie mic tweak în CSS pentru .hidden!important) -->
+    <div class="cal-pill__otIcon hidden grid h-8 w-8 place-items-center rounded-full bg-amber-500/10 text-amber-500" data-cal-ot-icon>
+      <i class="ph ph-warning-circle"></i>
+    </div>
+
+    <div class="cal-pill__info min-w-[160px] max-w-[260px] flex flex-col justify-center pl-5">
+      <!-- TITLU: rămâne în HTML, JS doar face toggle între cele două -->
+      <span class="cal-pill__title mb-1.5 block text-[9px] font-black uppercase tracking-[.14em] text-zinc-500 leading-none" data-cal-pill-title>
+        <span data-cal-title-normal>Booking Slot</span>
+        <span class="hidden" data-cal-title-overtime>Overtime Alert</span>
+      </span>
+
+      <span class="cal-pill__client hidden -mt-0.5 block cursor-pointer text-[13px] font-black text-white hover:text-indigo-300 hover:underline" data-cal-pill-client-name>
+        Client Name
+      </span>
+
+      <div class="flex items-center gap-2">
+        <!-- astea rămân completate de JS -->
+        <span class="cal-pill__time block text-[10px] font-bold italic text-slate-400" data-cal-pill-time>
+          --:-- - --:--
+        </span>
+
+        <span class="cal-pill__date text-[10px] font-bold italic text-slate-400" data-cal-pill-date>
+          —
+        </span>
+      </div>
+
+      <span class="cal-pill__services hidden block max-w-[240px] overflow-hidden text-ellipsis whitespace-nowrap text-[10px] font-bold text-indigo-300" data-cal-pill-services>
+        Services…
+      </span>
+    </div>
+
+    <div class="cal-pill__divider h-[34px] w-px bg-slate-400/20"></div>
+
+    <div class="cal-pill__actions flex items-center gap-2.5">
+      <div class="cal-pill__grp flex items-center gap-2.5" data-cal-actions-normal>
+        <button type="button" class="cal-pill__link border-0 bg-transparent text-xs font-black text-slate-400 hover:text-white" data-cal-clear>Clear</button>
+        <button
+          type="button"
+          class="cal-pill__primary cursor-pointer rounded-full border border-blue-400/25 bg-blue-600 px-[18px] py-2.5 text-xs font-black text-white shadow-sm shadow-blue-600/20 hover:bg-blue-500"
+          data-cal-book
+        >Book Now</button>
+      </div>
+
+      <div class="cal-pill__grp hidden items-center gap-2.5" data-cal-actions-overtime>
+        <button type="button" class="cal-pill__link border-0 bg-transparent text-xs font-black text-slate-400 hover:text-white mr-5" data-cal-ot-cancel>No</button>
+        <button
+          type="button"
+          class="cal-pill__amber cursor-pointer rounded-full border border-amber-400/25 bg-amber-700 px-[18px] py-2.5 text-xs font-black text-white shadow-sm shadow-amber-500/20 hover:bg-amber-500"
+          data-cal-ot-agree
+        >Confirm</button>
+      </div>
+
+      <div class="cal-pill__grp hidden flex items-center gap-2.5" data-cal-actions-mng>
+
+        <!-- Details -->
+        <div
+          class="cal-iconBtn cal-iconBtn--info group relative grid h-9 w-9 cursor-pointer place-items-center rounded-full bg-slate-400/10 text-indigo-300 transition hover:bg-white/10 hover:text-white"
+          data-cal-mng-info
+          title="View Details"
+        >
+          <i class="ph ph-info"></i>
+          <span
+            class="cal-tooltip pointer-events-none absolute bottom-[125%] left-1/2 z-50 -translate-x-1/2 translate-y-2.5 whitespace-nowrap rounded-md border border-zinc-700 bg-zinc-800 px-2.5 py-1 text-[10px] font-black uppercase tracking-[.05em] text-white opacity-0 shadow-lg shadow-black/40 transition-all group-hover:translate-y-0 group-hover:opacity-100"
+          >Details</span>
+        </div>
+
+        <div class="cal-sep mx-1 h-6 w-px bg-slate-400/20"></div>
+
+        <!-- Confirm -->
+        <div
+          class="cal-iconBtn group relative grid h-9 w-9 cursor-pointer place-items-center rounded-full text-slate-400 transition hover:bg-white/10 hover:text-green-700"
+          data-cal-mng-confirm
+          title="Confirm"
+        >
+          <i class="ph ph-check"></i>
+          <span
+            class="cal-tooltip pointer-events-none absolute bottom-[125%] left-1/2 z-50 -translate-x-1/2 translate-y-2.5 whitespace-nowrap rounded-md border border-zinc-700 bg-zinc-800 px-2.5 py-1 text-[10px] font-black uppercase tracking-[.05em] text-white opacity-0 shadow-lg shadow-black/40 transition-all group-hover:translate-y-0 group-hover:opacity-100"
+          >Confirm</span>
+        </div>
+
+        <!-- Complete -->
+        <div
+          class="cal-iconBtn group relative grid h-9 w-9 cursor-pointer place-items-center rounded-full text-slate-400 transition hover:bg-white/10 hover:text-blue-700"
+          data-cal-mng-complete
+          title="Complete"
+        >
+          <i class="ph ph-check-circle"></i>
+          <span
+            class="cal-tooltip pointer-events-none absolute bottom-[125%] left-1/2 z-50 -translate-x-1/2 translate-y-2.5 whitespace-nowrap rounded-md border border-zinc-700 bg-zinc-800 px-2.5 py-1 text-[10px] font-black uppercase tracking-[.05em] text-white opacity-0 shadow-lg shadow-black/40 transition-all group-hover:translate-y-0 group-hover:opacity-100"
+          >Complete</span>
+        </div>
+
+        <!-- No Show -->
+        <div
+          class="cal-iconBtn cal-iconBtn--red group relative grid h-9 w-9 cursor-pointer place-items-center rounded-full text-slate-400 transition hover:bg-white/10 hover:text-red-500"
+          data-cal-mng-noshow
+          title="No Show"
+        >
+          <i class="ph ph-user-minus"></i>
+          <span
+            class="cal-tooltip pointer-events-none absolute bottom-[125%] left-1/2 z-50 -translate-x-1/2 translate-y-2.5 whitespace-nowrap rounded-md border border-zinc-700 bg-zinc-800 px-2.5 py-1 text-[10px] font-black uppercase tracking-[.05em] text-white opacity-0 shadow-lg shadow-black/40 transition-all group-hover:translate-y-0 group-hover:opacity-100"
+          >No Show</span>
+        </div>
+
+        <!-- Decline -->
+        <div
+          class="cal-iconBtn group relative grid h-9 w-9 cursor-pointer place-items-center rounded-full text-slate-400 transition hover:bg-white/10 hover:text-white"
+          data-cal-mng-decline
+          title="Decline"
+        >
+          <i class="ph ph-prohibit"></i>
+          <span
+            class="cal-tooltip pointer-events-none absolute bottom-[125%] left-1/2 z-50 -translate-x-1/2 translate-y-2.5 whitespace-nowrap rounded-md border border-zinc-700 bg-zinc-800 px-2.5 py-1 text-[10px] font-black uppercase tracking-[.05em] text-white opacity-0 shadow-lg shadow-black/40 transition-all group-hover:translate-y-0 group-hover:opacity-100"
+          >Decline</span>
+        </div>
+
+        <div class="cal-sep mx-1 h-6 w-px bg-slate-400/20"></div>
+
+        <!-- Move -->
+        <div
+          class="cal-iconBtn cal-iconBtn--amber group relative grid h-9 w-9 cursor-pointer place-items-center rounded-full text-slate-400 transition hover:bg-white/10 hover:text-amber-500"
+          data-cal-mng-move
+          title="Move"
+        >
+          <i class="ph ph-arrows-out-cardinal"></i>
+          <span
+            class="cal-tooltip pointer-events-none absolute bottom-[125%] left-1/2 z-50 -translate-x-1/2 translate-y-2.5 whitespace-nowrap rounded-md border border-zinc-700 bg-zinc-800 px-2.5 py-1 text-[10px] font-black uppercase tracking-[.05em] text-white opacity-0 shadow-lg shadow-black/40 transition-all group-hover:translate-y-0 group-hover:opacity-100"
+          >Move</span>
+        </div>
+
+        <!-- Edit -->
+        <div
+          class="cal-iconBtn cal-iconBtn--indigo group relative grid h-9 w-9 cursor-pointer place-items-center rounded-full text-slate-400 transition hover:bg-white/10 hover:text-indigo-300"
+          data-cal-mng-edit
+          title="Edit Services"
+        >
+          <i class="ph ph-pencil-simple"></i>
+          <span
+            class="cal-tooltip pointer-events-none absolute bottom-[125%] left-1/2 z-50 -translate-x-1/2 translate-y-2.5 whitespace-nowrap rounded-md border border-zinc-700 bg-zinc-800 px-2.5 py-1 text-[10px] font-black uppercase tracking-[.05em] text-white opacity-0 shadow-lg shadow-black/40 transition-all group-hover:translate-y-0 group-hover:opacity-100"
+          >Edit</span>
+        </div>
+
+        <button
+          type="button"
+          class="cal-pill__close ml-2 cursor-pointer border-0 border-l border-slate-400/20 bg-transparent px-2.5 py-2 text-[11px] font-black uppercase tracking-[.12em] text-slate-500 hover:text-white"
+          data-cal-mng-close
+        >Close</button>
+      </div>
+
+    </div>
     </div>
   </div>
+
+  <!-- MODAL: Client Details -->
+  <div
+    class="cal-modalOverlay fixed inset-0 z-[200] items-center justify-center bg-black/85 p-4 backdrop-blur-sm"
+    data-cal-client-modal
+  >
+    <div class="cal-modalCard relative w-full max-w-[520px] rounded-[18px] border border-slate-400/20 bg-[#0f0f12] p-[18px] shadow-2xl shadow-black/60">
+      <button class="cal-modalClose absolute right-3 top-3 grid h-[38px] w-[38px] place-items-center rounded-xl border-0 bg-transparent text-slate-500 hover:bg-white/10 hover:text-white" type="button" data-cal-client-modal-close>
+        <i class="ph ph-x"></i>
+      </button>
+
+      <div class="cal-modalHeader mb-3.5 flex items-center gap-3 pr-12">
+        <div class="cal-modalAvatar grid h-[52px] w-[52px] place-items-center rounded-full bg-blue-500/15 text-[22px] text-blue-300">
+          <i class="ph ph-user"></i>
+        </div>
+        <div>
+          <h2 class="cal-modalTitle m-0 text-lg font-black text-white" data-cal-detail-name>Client Name</h2>
+          <span class="cal-statusBadge mt-1.5 inline-block rounded-full border px-2 py-1 text-[10px] font-black uppercase tracking-[.08em] text-blue-300" data-cal-detail-status>
+            Confirmed
+          </span>
+        </div>
+      </div>
+
+      <div class="cal-detail mt-1.5">
+        {% comment %} păstrăm clasele pentru structură; styling via tailwind pe rânduri {% endcomment %}
+        <div class="cal-detailRow flex items-center justify-between border-b border-slate-400/15 py-3">
+          <span class="cal-detailLabel text-[11px] font-black uppercase tracking-[.08em] text-zinc-500">Phone</span>
+          <span class="cal-detailValue cal-detailValue--link max-w-[60%] cursor-pointer text-right text-[13px] font-bold text-indigo-300 hover:underline" data-cal-detail-phone>--</span>
+        </div>
+        <div class="cal-detailRow flex items-center justify-between border-b border-slate-400/15 py-3">
+          <span class="cal-detailLabel text-[11px] font-black uppercase tracking-[.08em] text-zinc-500">Email</span>
+          <span class="cal-detailValue max-w-[60%] text-right text-[13px] font-bold text-zinc-200" data-cal-detail-email>--</span>
+        </div>
+        <div class="cal-detailRow flex items-center justify-between border-b border-slate-400/15 py-3">
+          <span class="cal-detailLabel text-[11px] font-black uppercase tracking-[.08em] text-zinc-500">Date & Time</span>
+          <span class="cal-detailValue max-w-[60%] text-right text-[13px] font-bold text-zinc-200" data-cal-detail-datetime>--</span>
+        </div>
+        <div class="cal-detailRow flex items-center justify-between border-b border-slate-400/15 py-3">
+          <span class="cal-detailLabel text-[11px] font-black uppercase tracking-[.08em] text-zinc-500">Services</span>
+          <span class="cal-detailValue max-w-[60%] text-right text-[13px] font-bold text-zinc-200" data-cal-detail-services>--</span>
+        </div>
+        <div class="cal-detailRow flex items-center justify-between py-3">
+          <span class="cal-detailLabel text-[11px] font-black uppercase tracking-[.08em] text-zinc-500">Price</span>
+          <span class="cal-detailValue max-w-[60%] text-right text-[13px] font-bold text-zinc-200" data-cal-detail-price>--</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Edit Services -->
+  <div class="cal-modalOverlay fixed inset-0 z-[200] items-center justify-center bg-black/60 p-4 backdrop-blur-sm" data-cal-edit-modal>
+        <div class="cal-modalCard cal-modalCard--sm relative w-full max-w-[420px] scale-100 rounded-2xl border border-white/5 bg-[#141416] p-6 shadow-2xl shadow-black/80 ring-1 ring-white/5" data-cal-edit-card>
+            
+            <div class="cal-modalTop mb-5 grid grid-cols-[1fr_auto] items-start gap-4">
+                <div>
+                    <h3 class="cal-modalTitle text-xl font-bold tracking-tight text-white">Services</h3>
+                    <p class="cal-modalSub mt-1 text-xs font-semibold uppercase tracking-wider text-zinc-500">Select services to include</p>
+                </div>
+                
+                <button class="cal-modalCloseInline group grid h-9 w-9 place-items-center rounded-full bg-white/5 text-zinc-400 transition-colors duration-200 hover:bg-white/10 hover:text-white" type="button" data-cal-edit-close>
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Lista este goală și va fi populată de JS -->
+            <div id="service-list" class="cal-svcList custom-scrollbar grid max-h-[300px] gap-2.5 overflow-y-auto pr-2" data-cal-edit-services-list></div>
+
+            <button id="save-btn" class="cal-modalPrimary mt-6 w-full cursor-pointer rounded-xl bg-blue-600 px-4 py-3.5 text-sm font-bold text-white shadow-lg shadow-blue-900/20 ring-1 ring-white/10 transition-all duration-200 hover:bg-blue-500 hover:shadow-blue-900/40 active:scale-[0.98]" type="button" data-cal-edit-save>
+                Save Changes
+            </button>
+        </div>
+  </div>
+
+  <!-- MODAL: Move Confirm -->
+  <div class="cal-modalOverlay fixed inset-0 z-[200] items-center justify-center bg-black/85 p-4 backdrop-blur-sm" data-cal-move-modal>
+    <div class="cal-modalCard cal-modalCard--sm relative w-full max-w-[420px] rounded-[18px] border border-slate-400/20 bg-[#0f0f12] p-[18px] shadow-2xl shadow-black/60" data-cal-move-card>
+      <div class="cal-moveHead mb-3 flex items-center gap-2.5">
+        <div class="cal-moveIcon grid h-11 w-11 place-items-center rounded-full bg-amber-500/10 text-[18px] text-amber-500">
+          <i class="ph ph-arrows-out-cardinal"></i>
+        </div>
+        <div class="flex-1">
+          <h3 class="cal-modalTitle text-lg font-black text-white">Confirm Move</h3>
+          <p class="cal-modalSub mt-0.5 text-[11px] font-extrabold uppercase tracking-[.08em] text-slate-500">Reposition this appointment?</p>
+        </div>
+        <button class="cal-modalCloseInline grid h-[38px] w-[38px] place-items-center rounded-xl border-0 bg-transparent text-slate-500 hover:bg-white/10 hover:text-white" type="button" data-cal-move-close>
+          <i class="ph ph-x"></i>
+        </button>
+      </div>
+
+      <div class="cal-moveBox mb-3 rounded-[14px] border border-slate-400/15 bg-slate-400/10 p-3">
+        <div class="cal-moveRow flex items-center justify-between">
+          <span class="cal-moveLabel text-[10px] font-black uppercase tracking-[.10em] text-slate-500">From</span>
+          <span class="cal-moveValue text-xs font-black text-slate-300" data-cal-move-from>--</span>
+        </div>
+        <div class="cal-moveLine my-2.5 h-px bg-slate-400/15"></div>
+        <div class="cal-moveRow flex items-center justify-between">
+          <span class="cal-moveLabel cal-moveLabel--to text-[10px] font-black uppercase tracking-[.10em] text-blue-300">To</span>
+          <span class="cal-moveValue cal-moveValue--to text-xs font-black text-blue-300" data-cal-move-to>--</span>
+        </div>
+        <div class="cal-moveRow mt-2 flex items-center justify-between">
+          <span class="cal-moveLabel cal-moveLabel--to text-[10px] font-black uppercase tracking-[.10em] text-blue-300">Date</span>
+          <span class="cal-moveValue cal-moveValue--to text-xs font-black text-blue-300" data-cal-move-date>--</span>
+        </div>
+      </div>
+
+      <div class="cal-moveActions flex gap-2.5">
+        <button class="cal-modalBtn flex-1 cursor-pointer rounded-[14px] border border-slate-400/20 bg-slate-400/10 px-3 py-2.5 font-black text-slate-200 hover:bg-white/10" type="button" data-cal-move-cancel>
+          Cancel
+        </button>
+        <button class="cal-modalPrimary cal-modalPrimary--green flex-1 cursor-pointer rounded-[14px] border border-blue-400/35 bg-blue-600 px-3 py-2.5 font-black text-white hover:bg-blue-500" type="button" data-cal-move-confirm>
+          Confirm
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCROLL + CANVAS -->
+  <main class="cal-scroll h-[calc(100vh-80px-58px)] w-screen overflow-y-auto overflow-x-hidden bg-[#09090b] [scroll-behavior:smooth]" data-cal-scroll>
+    <div class="cal-canvasWrap relative w-full">
+      <canvas class="cal-canvas block cursor-default" data-cal-canvas></canvas>
+    </div>
+  </main>
+
+</section>
+{% endblock %}
+
+{% block scripts %}
+  <script src="{% static 'js/employee/calendar/config.js' %}"></script>
+  <script src="{% static 'js/employee/calendar/utils.js' %}"></script>
+  <script src="{% static 'js/employee/calendar/services_catalog.js' %}"></script>
+
+  <script src="{% static 'js/employee/calendar/state.js' %}"></script>
+  <script src="{% static 'js/employee/calendar/compute.js' %}"></script>
+  <script src="{% static 'js/employee/calendar/data.js' %}"></script>
+
+  <script src="{% static 'js/employee/calendar/grid.js' %}"></script>
+  <script src="{% static 'js/employee/calendar/selection.js' %}"></script>
+  <script src="{% static 'js/employee/calendar/more_menu.js' %}"></script>
+  <script src="{% static 'js/employee/calendar/actions.js' %}"></script>
+  <script src="{% static 'js/employee/calendar/index.js' %}"></script>
 {% endblock %}

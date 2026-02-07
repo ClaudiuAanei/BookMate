@@ -1,9 +1,22 @@
+import json
+from django.http import Http404
 from django.shortcuts import render
-from apps.services.models import Service
+# from django.contrib.auth.decorators import login_required
+from .models import Employee
+from .services import *
+from django.shortcuts import get_object_or_404
 
-# Create your views here.
+
 def index(request):
+    if not request.user.is_authenticated:
+        raise Http404()
+    
+    employee = get_object_or_404(Employee, user=request.user) # Handle the case where the employee does not exist for the user
+
     context = {}
-    context["services"] = list(Service.objects.all().values("id", "name", "duration", "price", "description")) or []
+    context["program"] =serialize_program(employee.program)
+    context["holidays"] = serialize_holiday(employee.holidays.all())
+    context["public_holidays"] = serialize_public_holiday()
+    context["services"] = list(employee.services.all().values("id", "name", "duration", "price", "description")) or []
 
     return render(request, "employee/calendar/index.html", context)

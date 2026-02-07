@@ -5,7 +5,7 @@ from django.conf import settings
 
 
 class Employee(models.Model):
-    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="employee_profile")
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="employee")
     first_name = models.CharField(max_length=100, blank=True, null= True)
     last_name = models.CharField(max_length=100, blank=True, null= True)
     phone = models.CharField(unique=True, db_index=True, blank=True)

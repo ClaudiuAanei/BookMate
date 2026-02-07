@@ -1,9 +1,10 @@
 import json
+from .models import Client
+from .forms import ClientForm
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from .services import search_clients, serialize_client
-from .models import Client
-from .forms import ClientForm
+
 
 
 def create_client(request):

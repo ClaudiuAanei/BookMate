@@ -52,12 +52,9 @@
 
   <!-- Core -->
   <script src="{% static 'js/employee/core/dom.js' %}"></script>
-  <script src="{% static 'js/employee/core/http.js' %}"></script>
   <script src="{% static 'js/employee/core/notify.js' %}"></script>
-
   <script src="{% static 'js/employee/core/csrf.js' %}"></script>
   <script src="{% static 'js/employee/core/http.js' %}"></script>
-
 
   <script src="{% static 'js/employee/state/store.js' %}"></script>
 
@@ -68,8 +65,12 @@
   <script src="{% static 'js/employee/components/service_dropdown/index.js' %}"></script>
   <script src="{% static 'js/employee/shell/navbar.js' %}"></script>
 
+  {% block scripts %}
+  
+  {% endblock %}
+  <!-- Boot -->
   <script src="{% static 'js/employee/core/boot.js' %}"></script>
 
-  {% block scripts %}{% endblock %}
+  
 </body>
 </html>

@@ -74,7 +74,7 @@ class EmployeeAdmin(admin.ModelAdmin):
     def lunch_time(self, obj):
         if not obj.program:
             return "-"
-        return f'{obj.program.break_start.strftime("%H:%M")} - {obj.program.break_end.strftime("%H:%M")}'
+        return f'{obj.program.lunch_start.strftime("%H:%M")} - {obj.program.lunch_end.strftime("%H:%M")}'
 
 
 admin.site.register(Employee, EmployeeAdmin)
