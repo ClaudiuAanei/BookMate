@@ -39,7 +39,29 @@ Employee.calendarCompute = {
     const day = new Date(S.startDate);
     day.setDate(S.startDate.getDate() + colIndex);
 
-    const zones = [];
+    const zones = []; // ✅ trebuie să fie AICI, înainte de orice zones.push
+
+    const dayKey = U.toDateKey(day);
+
+    // full blocked day
+    if (S.blockedDays?.has(dayKey)) {
+      zones.push({
+        y: gridStartY,
+        h: (C.endHour - C.startHour) * C.pixelPerHour
+      });
+      return zones;
+    }
+
+    // partial blocks
+    const partial = S.partialBlocked?.get(dayKey) || [];
+    for (const b of partial) {
+      const y1 = this.calculateYFromTime(b.start);
+      const y2 = this.calculateYFromTime(b.end);
+      const top = Math.min(y1, y2);
+      const bottom = Math.max(y1, y2);
+      const h = Math.max(0, bottom - top);
+      if (h > 0) zones.push({ y: top, h });
+    }
 
     // lunch
     if (!U.isWeekend(day)) {

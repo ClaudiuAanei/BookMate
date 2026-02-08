@@ -21,11 +21,11 @@ def serialize_holiday(holidays: list[EmployeeHoliday]) -> list[dict]:
         'end': h.enddate.strftime('%Y-%m-%d'),
         'reason': h.reason,
         'is_full_day': h.is_full_day,
-        'start_time': h.start_time,
-        'end_time': h.end_time,
-        'days': h.days_off,
+        'start_time': h.start_time.strftime("%H:%M") if h.start_time else None,
+        'end_time': h.end_time.strftime("%H:%M") if h.end_time else None,
         'status': h.status,
-        'status_label': h.get_status_display()
+        'status_label': h.get_status_display(),
+
         } 
     for h in holidays
     ]

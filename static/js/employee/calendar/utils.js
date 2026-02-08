@@ -26,5 +26,21 @@ Employee.calendarUtils = {
   safeText(v, fallback="—") {
     const s = (v == null) ? "" : String(v).trim();
     return s ? s : fallback;
-  }
+  },
+  
+    toDateKey(d) {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${y}-${m}-${day}`;
+  },
+
+  parseDateOnly(ymd) {
+    // ymd: "YYYY-MM-DD" -> Date la 00:00 local
+    const [y, m, d] = String(ymd).split("-").map(Number);
+    const dt = new Date(y, (m - 1), d);
+    dt.setHours(0, 0, 0, 0);
+    return dt;
+  },
+
 };

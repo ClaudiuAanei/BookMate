@@ -1,7 +1,7 @@
 window.Employee = window.Employee || {};
 
 Employee.calendarMoreMenu = {
-openSlotExtra(slot) {
+async openSlotExtra(slot) {
   const S = Employee.calendarState;
 
   // ✅ dacă aveai un booking slot selectat, îl ștergem când intri în "More"
@@ -19,13 +19,16 @@ openSlotExtra(slot) {
 
   if (isVisible) {
     pill.classList.add("is-switching");
-    setTimeout(() => {
+    setTimeout(async () => {
+      await Employee.calendarData.ensureDetailsForSlot(slot);
       Employee.calendarActions.updateActionBar(slot, true);
       requestAnimationFrame(() => pill.classList.remove("is-switching"));
     }, 150);
   } else {
+    await Employee.calendarData.ensureDetailsForSlot(slot);
     Employee.calendarActions.updateActionBar(slot, true);
   }
+
 },
 
   updateSlotStatus(status) {

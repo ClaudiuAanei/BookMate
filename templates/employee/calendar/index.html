@@ -362,6 +362,11 @@
 {% endblock %}
 
 {% block scripts %}
+{{ calendar|json_script:"employee-calendar" }}
+  <script>
+    window.EmployeeCalendarBootstrap =
+      JSON.parse(document.getElementById("employee-calendar").textContent);
+  </script>
   <script src="{% static 'js/employee/calendar/config.js' %}"></script>
   <script src="{% static 'js/employee/calendar/utils.js' %}"></script>
   <script src="{% static 'js/employee/calendar/services_catalog.js' %}"></script>

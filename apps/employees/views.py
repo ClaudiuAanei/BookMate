@@ -14,9 +14,14 @@ def index(request):
     employee = get_object_or_404(Employee, user=request.user) # Handle the case where the employee does not exist for the user
 
     context = {}
-    context["program"] =serialize_program(employee.program)
-    context["holidays"] = serialize_holiday(employee.holidays.all())
-    context["public_holidays"] = serialize_public_holiday()
+
+    calendar = {
+        "program": serialize_program(employee.program),
+        "holidays": serialize_holiday(employee.holidays.all()),
+        "public_holidays": serialize_public_holiday(),
+    }
+
     context["services"] = list(employee.services.all().values("id", "name", "duration", "price", "description")) or []
+    context["calendar"] = calendar
 
     return render(request, "employee/calendar/index.html", context)

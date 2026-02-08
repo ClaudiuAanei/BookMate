@@ -88,20 +88,20 @@ Employee.calendarActions = {
     this.el.btnPrev?.addEventListener("click", () => {
       S.startDate.setDate(S.startDate.getDate() - C.COLUMNS);
       S.selectedDate = new Date(S.startDate);
-      Employee.calendarGrid.render();
+      Employee.calendarData.loadRangeAndRender();
     });
 
     this.el.btnNext?.addEventListener("click", () => {
       S.startDate.setDate(S.startDate.getDate() + C.COLUMNS);
       S.selectedDate = new Date(S.startDate);
-      Employee.calendarGrid.render();
+      Employee.calendarData.loadRangeAndRender();
     });
 
     this.el.btnToday?.addEventListener("click", () => {
       const d = new Date(); d.setHours(0,0,0,0);
       S.startDate = d;
       S.selectedDate = new Date(d);
-      Employee.calendarGrid.render();
+      Employee.calendarData.loadRangeAndRender();
     });
 
     this.el.inDate?.addEventListener("change", (e) => {
@@ -110,7 +110,7 @@ Employee.calendarActions = {
       d.setHours(0,0,0,0);
       S.startDate = new Date(d);
       S.selectedDate = new Date(d);
-      Employee.calendarGrid.render();
+      Employee.calendarData.loadRangeAndRender();
     });
 this.el.btnQuickNav?.addEventListener("click", (e) => {
   e.preventDefault();

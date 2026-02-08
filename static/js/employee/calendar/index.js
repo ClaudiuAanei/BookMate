@@ -10,12 +10,25 @@ Employee.calendar = {
     if (!canvas) return;
 
     // dates
-    const d = new Date(); d.setHours(0,0,0,0);
+    const U = Employee.calendarUtils;
+
+    const params = new URLSearchParams(window.location.search);
+    const startParam = params.get("start");
+
+    let d;
+    if (startParam) d = U.parseDateOnly(startParam);
+    else { d = new Date(); d.setHours(0,0,0,0); }
+
     Employee.calendarState.startDate = new Date(d);
     Employee.calendarState.selectedDate = new Date(d);
 
     // catalog
     Employee.servicesCatalog.refreshFromDom();
+
+    // apply backend bootstrap if present (program + holidays + public holidays)
+    if (window.EmployeeCalendarBootstrap) {
+      Employee.calendarData.applyBackend(window.EmployeeCalendarBootstrap);
+    }
 
     // init
     Employee.calendarGrid.init({ canvas, rangeEl });
@@ -56,13 +69,12 @@ document.addEventListener("click", (e) => {
 });
 
 
-
-    // mock seed
-    Employee.calendarData.seedMock();
-
     // initial render
     Employee.calendarActions.syncTopBar();
-    Employee.calendarGrid.render();
+    Employee.calendarData.loadRangeAndRender();
+
+
+
 
     // react to navbar events (store emits these)
     document.addEventListener("employee:client-selected", () => {

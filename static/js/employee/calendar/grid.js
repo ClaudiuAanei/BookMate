@@ -64,22 +64,118 @@ Employee.calendarGrid = {
     // bg
     ctx.fillStyle = "#09090b";
     ctx.fillRect(0, 0, viewWidth, canvasHeight);
+        const drawWrappedCenter = (text, x, y, maxWidth, lineHeight) => {
+      const words = String(text || "").split(/\s+/).filter(Boolean);
+      if (!words.length) return;
+
+      const lines = [];
+      let line = words[0];
+
+      for (let i = 1; i < words.length; i++) {
+        const test = line + " " + words[i];
+        if (ctx.measureText(test).width <= maxWidth) {
+          line = test;
+        } else {
+          lines.push(line);
+          line = words[i];
+        }
+      }
+      lines.push(line);
+
+      // max 2 lines: if more, merge tail
+      if (lines.length > 2) {
+        const first = lines[0];
+        const rest = lines.slice(1).join(" ");
+        lines.length = 0;
+        lines.push(first, rest);
+      }
+
+      const totalH = lines.length * lineHeight;
+      let yy = y - totalH / 2 + lineHeight / 2;
+
+      for (const l of lines) {
+        ctx.fillText(l, x, yy);
+        yy += lineHeight;
+      }
+    };
+
+    const drawVerticalWatermark = (text, centerX, centerY, maxLenPx) => {
+      const t = String(text || "").trim();
+      if (!t) return;
+
+      ctx.save();
+      ctx.translate(centerX, centerY);
+      ctx.rotate(-Math.PI / 2);
+
+      // center in rotated space
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+
+      // if too long, truncate with ellipsis (based on width)
+      let out = t;
+      while (ctx.measureText(out).width > maxLenPx && out.length > 4) {
+        out = out.slice(0, -2);
+      }
+      if (out !== t) out = out.trim() + "…";
+
+      ctx.fillText(out, 0, 0);
+      ctx.restore();
+    };
 
     // range label
     if (this.rangeEl) this.rangeEl.textContent = U.fmtRange(S.startDate, C.COLUMNS);
 
     // weekend shading
-    for (let i = 0; i < C.COLUMNS; i++) {
-      const day = new Date(S.startDate);
-      day.setDate(S.startDate.getDate() + i);
-      if (U.isWeekend(day)) {
-        const x = C.timeColWidth + i * colWidth;
-        ctx.fillStyle = "#0c0c0e";
-        ctx.fillRect(x, 0, colWidth, canvasHeight);
-        ctx.fillStyle = "rgba(0,0,0,0.3)";
-        ctx.fillRect(x, 0, colWidth, canvasHeight);
-      }
+for (let i = 0; i < C.COLUMNS; i++) {
+  const day = new Date(S.startDate);
+  day.setDate(S.startDate.getDate() + i);
+
+  const dayKey = U.toDateKey(day);
+
+  const isWeekend = U.isWeekend(day);
+  const isHoliday = S.blockedDays?.has(dayKey);
+
+  if (isWeekend || isHoliday) {
+    const x = C.timeColWidth + i * colWidth;
+
+    // ✅ culoare diferită
+    // weekend = gri rece
+    // holiday = violet închis (ușor diferit)
+    ctx.fillStyle = isHoliday ? "#120d14" : "#0b0b0f";
+    ctx.fillRect(x, 0, colWidth, canvasHeight);
+
+    // overlay (aceeași adâncime la ambele)
+    ctx.fillStyle = "rgba(0,0,0,0.35)";
+    ctx.fillRect(x, 0, colWidth, canvasHeight);
+
+    // label doar pentru holiday/public holiday (NU weekend)
+    if (!isWeekend && isHoliday) {
+      const raw = (S.blockedDayLabels?.get(dayKey) || "HOLIDAY");
+      const label = String(raw).toUpperCase();
+
+      const gridTop = C.headerHeight + C.emptyRowHeight;
+      const gridH = (C.endHour - C.startHour) * C.pixelPerHour;
+      const centerY = gridTop + gridH / 2;
+      const centerX = x + colWidth / 2;
+
+      ctx.save();
+      ctx.fillStyle = "rgba(161, 161, 170, 0.35)";
+      ctx.font = "900 12px sans-serif";
+
+      drawVerticalWatermark(label, centerX, centerY, gridH * 0.85);
+
+      ctx.fillStyle = "rgba(113, 113, 122, 0.75)";
+      ctx.font = "900 9px sans-serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      drawWrappedCenter(label, centerX, gridTop + 20, colWidth - 16, 10);
+
+      ctx.restore();
     }
+  }
+}
+
+    
 
     // lunch
     const lunchY = gridStartY + ((C.lunchStart - C.startHour) * C.pixelPerHour);
@@ -87,7 +183,8 @@ Employee.calendarGrid = {
     for (let i = 0; i < C.COLUMNS; i++) {
       const day = new Date(S.startDate);
       day.setDate(S.startDate.getDate() + i);
-      if (!U.isWeekend(day)) {
+      const dayKey = U.toDateKey(day);
+      if (!U.isWeekend(day) && !S.blockedDays?.has(dayKey)) {
         const x = C.timeColWidth + i * colWidth;
         ctx.fillStyle = "rgba(39, 39, 42, 0.3)";
         ctx.fillRect(x, lunchY, colWidth, lunchH);
@@ -99,6 +196,55 @@ Employee.calendarGrid = {
         ctx.font = "900 9px sans-serif";
         ctx.fillStyle = "#52525b";
         ctx.fillText("LUNCH BREAK", x + colWidth/2, lunchY + lunchH/2);
+      }
+    }
+
+    // partial holidays (like lunch blocks)
+    for (let i = 0; i < C.COLUMNS; i++) {
+      const day = new Date(S.startDate);
+      day.setDate(S.startDate.getDate() + i);
+      const dayKey = U.toDateKey(day);
+
+      if (U.isWeekend(day) || S.blockedDays?.has(dayKey)) continue;
+
+      const blocks = S.partialBlocked?.get(dayKey) || [];
+      if (!blocks.length) continue;
+
+      const x = C.timeColWidth + i * colWidth;
+
+      for (const b of blocks) {
+        const y1 = K.calculateYFromTime(b.start);
+        const y2 = K.calculateYFromTime(b.end);
+        const h = Math.max(0, y2 - y1);
+        if (h <= 0) continue;
+
+        // background (same family as full-day blocked)
+        ctx.fillStyle = "#18101c";      
+        ctx.fillRect(x, y1, colWidth, h);
+
+        ctx.fillStyle = "rgba(0,0,0,0.25)";
+        ctx.fillRect(x, y1, colWidth, h);
+
+
+        // text watermark (same effect as full-day)
+        const centerX = x + colWidth / 2;
+        const centerY = y1 + h / 2;
+
+        ctx.save();
+        ctx.fillStyle = "rgba(161, 161, 170, 0.35)";
+        ctx.font = "900 12px sans-serif";
+
+        // vertical watermark, constrained by block height
+        drawVerticalWatermark("HOLIDAY", centerX, centerY, h * 0.85);
+
+        // small top label (2-line max) inside block
+        ctx.fillStyle = "rgba(113, 113, 122, 0.75)";
+        ctx.font = "900 9px sans-serif";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        drawWrappedCenter("HOLIDAY", centerX, y1 + 16, colWidth - 16, 10);
+
+        ctx.restore();
       }
     }
 
@@ -139,7 +285,9 @@ Employee.calendarGrid = {
 
       const isToday = day.getTime() === today.getTime();
       const isSel = S.selectedDate && day.getTime() === S.selectedDate.getTime();
-      const isWK = U.isWeekend(day);
+      const dayKey = U.toDateKey(day);
+      const isWK = U.isWeekend(day) || S.blockedDays?.has(dayKey);
+
 
       ctx.font = "700 10px sans-serif";
       ctx.textAlign = "center";

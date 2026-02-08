@@ -30,7 +30,26 @@ Employee.calendarSelection = {
     const gridStartY = C.headerHeight + C.emptyRowHeight;
     const day = new Date(S.startDate);
     day.setDate(S.startDate.getDate() + col);
-    const isWK = U.isWeekend(day);
+
+    const dayKey = U.toDateKey(day);
+    const isBlocked = S.blockedDays?.has(dayKey);
+    const isWK = U.isWeekend(day) || isBlocked;
+
+    const partial = S.partialBlocked?.get(dayKey) || [];
+
+    // mouse is inside a partial blocked zone?
+    let isInPartial = false;
+    if (!isWK && partial.length) {
+      for (const b of partial) {
+        const y1 = K.calculateYFromTime(b.start);
+        const y2 = K.calculateYFromTime(b.end);
+        const top = Math.min(y1, y2);
+        const bottom = Math.max(y1, y2);
+        if (y >= top && y <= bottom) { isInPartial = true; break; }
+      }
+    }
+
+
 
     // detect hover on "more dots"
     let isOverMoreBtn = false;
@@ -54,7 +73,7 @@ Employee.calendarSelection = {
     if (isOverMoreBtn) {
       this.canvas.style.cursor = "pointer";
     } else if (col >= 0 && col < C.COLUMNS && x >= C.timeColWidth) {
-      if (isWK) {
+      if (isWK || isInPartial) {
         this.canvas.style.cursor = "not-allowed";
       } else {
         const isHead = y < C.headerHeight;
@@ -102,7 +121,11 @@ Employee.calendarSelection = {
       if (y >= gridStartY) {
         const target = new Date(S.startDate);
         target.setDate(S.startDate.getDate() + col);
-        if (!U.isWeekend(target)) Employee.calendarMoreMenu.onCanvasClickMoveMode(col, y);
+        const key = U.toDateKey(target);
+        if (!U.isWeekend(target) && !S.blockedDays?.has(key)) {
+          Employee.calendarMoreMenu.onCanvasClickMoveMode(col, y);
+        }
+
       }
       return;
     }
@@ -135,7 +158,8 @@ if (y < C.headerHeight) {
 
   const target = new Date(S.startDate);
   target.setDate(S.startDate.getDate() + col);
-  if (!U.isWeekend(target)) {
+  const key = U.toDateKey(target);
+  if (!U.isWeekend(target) && !S.blockedDays?.has(key)) {
     S.selectedDate = target;
     Employee.calendarGrid.render();
   }
@@ -149,7 +173,9 @@ if (y >= gridStartY) {
   target.setDate(S.startDate.getDate() + col);
 
   // ✅ dacă dai click pe weekend, ștergem selecția curentă
-  if (U.isWeekend(target)) {
+  const key = U.toDateKey(target);
+  if (U.isWeekend(target) || S.blockedDays?.has(key)) {
+
     if (S.bookedSlot) {
       S.clearSelection();
       Employee.calendarActions.hidePill();
