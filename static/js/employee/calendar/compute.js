@@ -30,7 +30,7 @@ Employee.calendarCompute = {
     return !(startOk && endOk);
   },
 
-  getBlockedZones(colIndex) {
+  getBlockedZones(colIndex, excludeSlotId = Employee.calendarState.slotToMoveId) {
     const C = Employee.calendarConfig;
     const S = Employee.calendarState;
     const U = Employee.calendarUtils;
@@ -39,7 +39,7 @@ Employee.calendarCompute = {
     const day = new Date(S.startDate);
     day.setDate(S.startDate.getDate() + colIndex);
 
-    const zones = []; // ✅ trebuie să fie AICI, înainte de orice zones.push
+    const zones = []; 
 
     const dayKey = U.toDateKey(day);
 
@@ -76,7 +76,7 @@ Employee.calendarCompute = {
       const sDay = new Date(slot.fullDate);
       const sCol = Math.round((sDay.getTime() - S.startDate.getTime()) / 86400000);
 
-      if (sCol === colIndex && slot.status !== "declined" && slot.id !== S.slotToMoveId) {
+      if (sCol === colIndex &&slot.status !== "declined" &&String(slot.id) !== String(excludeSlotId)) {
         zones.push({ y: slot.y, h: (slot.duration / 60) * C.pixelPerHour });
       }
     }

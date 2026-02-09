@@ -80,6 +80,9 @@ Employee.calendarActions = {
     // initial sync
     this.syncTopBar();
   },
+  _editBackup: null,
+  _editSaved: false,
+
 
   _bindTopControls() {
     const S = Employee.calendarState;
@@ -88,20 +91,32 @@ Employee.calendarActions = {
     this.el.btnPrev?.addEventListener("click", () => {
       S.startDate.setDate(S.startDate.getDate() - C.COLUMNS);
       S.selectedDate = new Date(S.startDate);
+      
+
       Employee.calendarData.loadRangeAndRender();
+      Employee.calendarGrid.resetMouse();
+requestAnimationFrame(() => Employee.calendarSelection.refreshPreview());
     });
 
     this.el.btnNext?.addEventListener("click", () => {
       S.startDate.setDate(S.startDate.getDate() + C.COLUMNS);
       S.selectedDate = new Date(S.startDate);
+      
+
       Employee.calendarData.loadRangeAndRender();
+      Employee.calendarGrid.resetMouse();
+requestAnimationFrame(() => Employee.calendarSelection.refreshPreview());
     });
 
     this.el.btnToday?.addEventListener("click", () => {
       const d = new Date(); d.setHours(0,0,0,0);
       S.startDate = d;
       S.selectedDate = new Date(d);
+      
+
       Employee.calendarData.loadRangeAndRender();
+      Employee.calendarGrid.resetMouse();
+requestAnimationFrame(() => Employee.calendarSelection.refreshPreview());
     });
 
     this.el.inDate?.addEventListener("change", (e) => {
@@ -110,8 +125,13 @@ Employee.calendarActions = {
       d.setHours(0,0,0,0);
       S.startDate = new Date(d);
       S.selectedDate = new Date(d);
+      
+
       Employee.calendarData.loadRangeAndRender();
+      Employee.calendarGrid.resetMouse();
+requestAnimationFrame(() => Employee.calendarSelection.refreshPreview());
     });
+
 this.el.btnQuickNav?.addEventListener("click", (e) => {
   e.preventDefault();
   const input = this.el.inDate;
@@ -274,65 +294,77 @@ if (slot.isOvertime && !S.overtimeAgreed) {
     this._showPill();
   },
 
-  bookNow() {
-    const S = Employee.calendarState;
-    const store = Employee.store;
+  bookNow: async function () {
+  const S = Employee.calendarState;
+  const store = Employee.store;
 
-    if (!S.bookedSlot) return;
+  if (!S.bookedSlot) return;
 
-    const client = store?.selectedClient;
-    const ids = store?.confirmedServiceIds || [];
+  const client = store?.selectedClient;
+  const ids = store?.confirmedServiceIds || [];
 
-    if (!client?.id || !ids.length) {
-      Employee.notify?.err?.("Select client + services first.");
-      return;
-    }
+  if (!client?.id || !ids.length) {
+    Employee.notify.err("Select client + services first.");
+    return;
+  }
 
-    if (S.bookedSlot.isOvertime && !S.overtimeAgreed) {
-      // force overtime flow
-      this.updateActionBar(S.bookedSlot, false);
-      return;
-    }
+  if (S.bookedSlot.isOvertime && !S.overtimeAgreed) {
+    this.updateActionBar(S.bookedSlot, false);
+    return;
+  }
 
-    const totals = Employee.servicesCatalog.computeTotals(ids);
+  const payload = {
+    client: client.id,
+    services: ids,
+    date: Employee.calendarUtils.toDateKey(new Date(S.bookedSlot.fullDate)),
+    start: S.bookedSlot.startTime,
+    end: S.bookedSlot.endTime,
+    duration: S.bookedSlot.duration,
+    overtime: !!S.bookedSlot.isOvertime,
+  };
 
-    // payload ready for API
-    const payload = {
-      client_id: client.id,
-      service_ids: ids,
-      start_at_date: S.bookedSlot.fullDate,
-      start_time: S.bookedSlot.startTime,
-      end_time: S.bookedSlot.endTime,
-      duration_min: S.bookedSlot.duration,
-      overtime: !!S.bookedSlot.isOvertime
-    };
+try {
+  const created = await Employee.calendarData.createSlot(payload);
 
-    // TODO later: await Employee.calendarData.createSlot(payload)
-    // Mock add now:
-    S.confirmedSlots.push({
-      id: Date.now(),
-      y: S.bookedSlot.y,
-      duration: S.bookedSlot.duration,
-      startTime: S.bookedSlot.startTime,
-      endTime: S.bookedSlot.endTime,
-      fullDate: S.bookedSlot.fullDate,
-      status: "pending",
-      clientName: `${client.first_name || ""} ${client.last_name || ""}`.trim() || "Client",
-      email: client.email || "",
-      phone: client.phone || "",
-      serviceIds: ids.slice(),
-      services: totals.names.join(", "),
-      price: totals.total
-    });
+  // ✅ folosește ce întoarce backend-ul
+  const okMsg = created?.message || "Appointment created.";
+  const slotId = created?.appointment_id || created?.id || Date.now();
 
-    Employee.notify?.ok?.("Booked (mock). Ready for API later.");
-    S.clearSelection();
-    this.hidePill();
-    Employee.calendarGrid.render();
+  S.confirmedSlots.push({
+    id: slotId,
+    y: S.bookedSlot.y,
+    duration: S.bookedSlot.duration,
+    startTime: S.bookedSlot.startTime,
+    endTime: S.bookedSlot.endTime,
+    fullDate: S.bookedSlot.fullDate,
+    status: "pending",
+    clientName: `${client.first_name || ""} ${client.last_name || ""}`.trim(),
+    email: client.email || "",
+    phone: client.phone || "",
+    serviceIds: ids.slice(),
+    services: Employee.servicesCatalog.computeTotals(ids).names.join(", "),
+    price: Employee.servicesCatalog.computeTotals(ids).total,
+    _detailsLoaded: true,
+  });
 
-    // Debug:
-    // console.log("BOOK PAYLOAD (ready for fetch):", payload);
-  },
+  Employee.notify.ok(okMsg);
+  S.clearSelection();
+  this.hidePill();
+  Employee.calendarGrid.render();
+
+} catch (err) {
+  console.error(err);
+
+  // ✅ folosește ce întoarce backend-ul la 400
+  const serverMsg =
+    err?.data?.error ||          // cazul tău: {"error": "..."}
+    err?.data?.message ||        // dacă schimbi backend-ul pe {"message": "..."}
+    err?.message ||              // fallback
+    "Failed to book appointment.";
+
+  Employee.notify.err(serverMsg);
+}
+},
 
   openClientDetails() {
     const S = Employee.calendarState;
@@ -366,6 +398,53 @@ if (slot.isOvertime && !S.overtimeAgreed) {
   closeClientModal() {
     this.el.clientModal?.classList.remove("is-open");
   },
+
+    _addMinutesToHHMM(startHHMM, addMin) {
+    const U = Employee.calendarUtils;
+    const parts = String(startHHMM || "0:0").split(":");
+    const h0 = Number(parts[0] || 0);
+    const m0 = Number(parts[1] || 0);
+    const base = h0 * 60 + m0;
+    const total = Math.max(0, base + (Number(addMin) || 0));
+    const h = Math.floor(total / 60);
+    const m = total % 60;
+    return `${U.pad2(h)}:${U.pad2(m)}`;
+  },
+
+  _validateResizeNoCollision(slot, durationMin) {
+    const C = Employee.calendarConfig;
+    const S = Employee.calendarState;
+    const K = Employee.calendarCompute;
+
+    if (!slot || !S.startDate) return { ok: false, reason: "Invalid slot" };
+
+    const gridStartY = C.headerHeight + C.emptyRowHeight;
+    const h = (Number(durationMin) / 60) * C.pixelPerHour;
+
+    const top = slot.y;
+    const bottom = top + h;
+
+    const maxBottom = gridStartY + (C.endHour - C.startHour) * C.pixelPerHour;
+    if (top < gridStartY || bottom > maxBottom) {
+      return { ok: false, reason: "Depășește programul zilei" };
+    }
+
+    const dayMs = Number(slot.fullDate);
+    const colIndex = Math.round((dayMs - S.startDate.getTime()) / 86400000);
+
+    if (colIndex < 0 || colIndex >= C.COLUMNS) {
+      return { ok: false, reason: "Slot-ul nu e în view-ul curent" };
+    }
+
+    // IMPORTANT: exclude slot-ul curent din coliziuni
+    const zones = K.getBlockedZones(colIndex, slot.id);
+
+    const conflict = zones.some(z => top < z.y + z.h && bottom > z.y);
+    if (conflict) return { ok: false, reason: "Collision with another booking or block" };
+
+    return { ok: true, colIndex };
+  },
+
   openEditServices() {
   const S = Employee.calendarState;
   const slot = S.confirmedSlots.find(s => s.id === S.currentActiveSlotId);
@@ -431,50 +510,127 @@ if (slot.isOvertime && !S.overtimeAgreed) {
   }).join("");
 
   // --- Toggle on click (single class + data-selected for save) ---
+  // --- Toggle on click (interactive: resize slot + collision guard) ---
   this.el.editList.querySelectorAll("[data-edit-svc]").forEach(row => {
     row.addEventListener("click", () => {
       const isSelected = row.getAttribute("data-selected") === "true";
       const newState = !isSelected;
 
+      // optimistic UI toggle
       row.setAttribute("data-selected", String(newState));
       row.classList.toggle("is-selected", newState);
+
+      // recompute selected ids
+      const selectedIds = Array.from(
+        this.el.editList.querySelectorAll('[data-edit-svc][data-selected="true"]')
+      )
+        .map(el => Number(el.getAttribute("data-svc-id")))
+        .filter(Number.isFinite);
+
+      const totals = Employee.servicesCatalog.computeTotals(selectedIds);
+
+      // Allow temporary empty selection in modal, but don't apply it to the slot preview
+      if (!selectedIds.length || Number(totals.duration) <= 0) {
+        return;
+      }
+
+
+      // validate new duration against collisions / blocked time
+      const check = this._validateResizeNoCollision(slot, totals.duration);
+      if (!check.ok) {
+        // revert UI toggle
+        row.setAttribute("data-selected", String(isSelected));
+        row.classList.toggle("is-selected", isSelected);
+
+        Employee.notify?.err?.(check.reason || "Selecție invalidă");
+        return;
+      }
+
+      // apply preview immediately
+      slot.serviceIds = selectedIds;
+      slot.services = totals.names.join(", ");
+      slot.price = totals.total;
+      slot.duration = totals.duration;
+      slot.endTime = this._addMinutesToHHMM(slot.startTime, slot.duration);
+
+      this.updateActionBar(slot, true);
+      Employee.calendarGrid.render();
     });
   });
+
+      // Backup original state (so we can revert on close)
+    this._editSaved = false;
+    this._editBackup = {
+      id: slot.id,
+      serviceIds: Array.isArray(slot.serviceIds) ? [...slot.serviceIds] : [],
+      services: slot.services,
+      price: slot.price,
+      duration: slot.duration,
+      endTime: slot.endTime,
+    };
 
   // open modal
   this.el.editModal.classList.add("is-open");
 },
 
   closeEditModal() {
+    // If user closes without saving, revert to original slot state
+if (!this._editSaved && this._editBackup) {
+  const S = Employee.calendarState;
+  const slot = S.confirmedSlots.find(s => String(s.id) === String(this._editBackup.id));
+  if (slot) {
+    slot.serviceIds = Array.isArray(this._editBackup.serviceIds) ? [...this._editBackup.serviceIds] : [];
+    slot.services = this._editBackup.services;
+    slot.price = this._editBackup.price;
+    slot.duration = this._editBackup.duration;
+    slot.endTime = this._editBackup.endTime;
+  }
+
+  this._editBackup = null;
+  Employee.calendarGrid.render();
+}
+
     this.el.editModal?.classList.remove("is-open");
   },
 
 saveEditServices() {
-    const S = Employee.calendarState;
-    const slot = S.confirmedSlots.find(s => s.id === S.currentActiveSlotId);
-    if (!slot) return;
+  const S = Employee.calendarState;
+  const slot = S.confirmedSlots.find(s => s.id === S.currentActiveSlotId);
+  if (!slot) return;
 
-    // Selector actualizat pentru noua logică
-    const selectedIds = Array.from(this.el.editList.querySelectorAll('[data-edit-svc][data-selected="true"]'))
-        .map(el => Number(el.getAttribute("data-svc-id")))
-        .filter(Number.isFinite);
+  const selectedIds = Array.from(
+    this.el.editList.querySelectorAll('[data-edit-svc][data-selected="true"]')
+  )
+    .map(el => Number(el.getAttribute("data-svc-id")))
+    .filter(Number.isFinite);
 
-    const totals = Employee.servicesCatalog.computeTotals(selectedIds);
+  const totals = Employee.servicesCatalog.computeTotals(selectedIds);
 
-    slot.serviceIds = selectedIds;
-    slot.services = totals.names.join(", ");
-    slot.price = totals.total;
+  // 🚫 nu permitem programare fără servicii
+  if (!selectedIds.length || Number(totals.duration) <= 0) {
+    Employee.notify?.err?.("You must select at least one service.");
+    return; // ține modalul deschis
+  }
 
-    // NOTE: duration change implies slot duration/time/y should change,
-    // but for safety you can keep duration as-is or enforce:
-    // slot.duration = totals.duration; (then recompute endTime)
-    // I keep duration unchanged by default to avoid overlapping logic.
-    // If you want strict behavior, tell me and I’ll enforce recalculation + collision handling.
+  const check = this._validateResizeNoCollision(slot, totals.duration);
+  if (!check.ok) {
+    Employee.notify?.err?.(check.reason || "Invalid selection");
+    return; // ține modalul deschis
+  }
 
-    this.closeEditModal();
-    this.updateActionBar(slot, true);
-    Employee.calendarGrid.render();
-    Employee.notify?.ok?.("Services updated (local).");
+  slot.serviceIds = selectedIds;
+  slot.services = totals.names.join(", ");
+  slot.price = totals.total;
+  slot.duration = totals.duration;
+  slot.endTime = this._addMinutesToHHMM(slot.startTime, slot.duration);
+
+  this._editSaved = true;
+  this._editBackup = null;
+
+  this.closeEditModal();
+  this.updateActionBar(slot, true);
+  Employee.calendarGrid.render();
+  Employee.notify?.ok?.("Services updated (local).");
 },
 
   openMoveModal({ from, to, date }) {

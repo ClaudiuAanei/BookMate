@@ -2,8 +2,9 @@ window.Employee = window.Employee || {};
 
 Employee.calendarData = {
   endpoints: {
-    list: "/employee/api/get-appointments/",
-    details: (id) => `/employee/api/get-appointments/${id}/`,
+    list: "/employee/api/appointments/",
+    create: "/employee/api/appointments/create-appointment/",
+    details: (id) => `/employee/api/appointments/${id}/details`,
   },
   async _getJSON(url) {
     const res = await fetch(url, {
@@ -33,49 +34,6 @@ Employee.calendarData = {
     if (s === "decl" || s === "declined" || s === "canceled" || s === "cancelled") return "declined";
 
     return "confirmed";
-  },
-
-
-  seedMock() {
-    const S = Employee.calendarState;
-    const calcY = Employee.calendarCompute.calculateYFromTime.bind(Employee.calendarCompute);
-
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    tomorrow.setHours(0,0,0,0);
-
-    S.confirmedSlots = [
-      {
-        id: 1,
-        y: calcY("09:00"),
-        duration: 60,
-        startTime: "09:00",
-        endTime: "10:00",
-        clientName: "John Doe",
-        email: "john.doe@email.com",
-        phone: "+40 722 123 456",
-        fullDate: tomorrow.getTime(),
-        status: "confirmed",
-        serviceIds: [],
-        services: "Haircut",
-        price: 45
-      },
-      {
-        id: 2,
-        y: calcY("10:00"),
-        duration: 30,
-        startTime: "10:00",
-        endTime: "10:30",
-        clientName: "New Client",
-        email: "client@example.com",
-        phone: "+40 744 987 654",
-        fullDate: tomorrow.getTime(),
-        status: "completed",
-        serviceIds: [],
-        services: "Beard Trim",
-        price: 25
-      }
-    ];
   },
 
   applyBackend(payload) {
@@ -254,6 +212,7 @@ async loadRangeAndRender() {
   });
 
   Employee.calendarGrid.render();
+  requestAnimationFrame(() => Employee.calendarSelection.refreshPreview());
 },
 
   async fetchAppointmentDetails(appointmentId) {
@@ -292,6 +251,34 @@ async loadRangeAndRender() {
 
 
 
-  async createSlot(/* payload */) { return null; },
+  async createSlot(payload) {
+  if (!payload) throw new Error("Missing payload");
+
+  const res = await fetch(this.endpoints.create, {
+    method: "POST",
+    credentials: "same-origin",
+    headers: {
+      "Content-Type": "application/json",
+      "X-Requested-With": "XMLHttpRequest",
+      "X-CSRFToken": Employee.csrf.token(),
+    },
+    body: JSON.stringify(payload),
+  });
+
+  const text = await res.text();
+  let data;
+  try { data = text ? JSON.parse(text) : null; }
+  catch { data = { raw: text }; }
+
+  if (!res.ok) {
+    const msg = data?.message || data?.detail || "Booking failed";
+    const err = new Error(msg);
+    err.data = data;
+    throw err;
+  }
+
+  return data;
+},
+
   async updateSlot(/* id, payload */) { return null; }
 };

@@ -37,6 +37,11 @@ Employee.calendarGrid = {
     this.mousePos = { x, y, col };
   },
 
+
+  resetMouse() {
+    this.mousePos = { x: -1000, y: -1000, col: -1 };
+  },
+
   render() {
     const C = Employee.calendarConfig;
     const S = Employee.calendarState;
@@ -437,8 +442,8 @@ for (let i = 0; i < C.COLUMNS; i++) {
       const x = C.timeColWidth + i * colWidth;
 
       const dur =
-        (S.isMovingMode && S.slotToMoveId)
-          ? (S.confirmedSlots.find(s => s.id === S.slotToMoveId)?.duration || 0)
+        (S.isMovingMode && S.slotToMoveSnapshot)
+          ? (S.slotToMoveSnapshot.duration || 0)
           : (S.durationMin || 0);
 
       const isGrid = (!S.bookedSlot && dur > 0 && m.x >= C.timeColWidth && m.y >= gridStartY);

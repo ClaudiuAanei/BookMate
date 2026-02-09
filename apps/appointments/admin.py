@@ -7,7 +7,7 @@ class AppointmentAdmin(admin.ModelAdmin):
     list_display = ['client', 'slot', 'date', 'employee', 'services_list', 'price_in_euro', 'status']
 
     exclude = ('time_length', )
-    search_fields = ['date', "first_name", "last_name", "phone", "email"]
+    search_fields = ['date']
     ordering = ['start']
     readonly_fields = ('end', 'price_in_euro')
     filter_horizontal = ('services',)

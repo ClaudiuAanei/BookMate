@@ -22,6 +22,7 @@ Employee.calendarState = {
   // move mode
   isMovingMode: false,
   slotToMoveId: null,
+  slotToMoveSnapshot: null,
   proposedMoveSlot: null,
 
   // blocked days (public holidays + full-day holidays)

@@ -7,6 +7,10 @@ Employee.calendarSelection = {
     canvas.addEventListener("mousemove", (e) => this._onMove(e));
     canvas.addEventListener("mousedown", (e) => this._onDown(e));
   },
+  
+  _lastMouseClientX: null,
+  _lastMouseClientY: null,
+
 
   _colFromX(x) {
     const C = Employee.calendarConfig;
@@ -15,6 +19,9 @@ Employee.calendarSelection = {
   },
 
   _onMove(e) {
+    this._lastMouseClientX = e.clientX;
+    this._lastMouseClientY = e.clientY;
+
     const C = Employee.calendarConfig;
     const S = Employee.calendarState;
     const U = Employee.calendarUtils;
@@ -49,8 +56,6 @@ Employee.calendarSelection = {
       }
     }
 
-
-
     // detect hover on "more dots"
     let isOverMoreBtn = false;
     const colW = (window.innerWidth - C.timeColWidth) / C.COLUMNS;
@@ -79,8 +84,8 @@ Employee.calendarSelection = {
         const isHead = y < C.headerHeight;
 
         const dur =
-          (S.isMovingMode && S.slotToMoveId)
-            ? (S.confirmedSlots.find(s => s.id === S.slotToMoveId)?.duration || 0)
+          (S.isMovingMode && S.slotToMoveSnapshot)
+            ? (S.slotToMoveSnapshot.duration || 0)
             : (S.durationMin || 0);
 
         const vTop = K.getValidPreviewPos(y, dur, col);
@@ -239,5 +244,14 @@ if (y >= gridStartY) {
       Employee.calendarActions.updateActionBar(S.bookedSlot, false);
       Employee.calendarGrid.render();
     }
+  },
+
+  refreshPreview() {
+    if (this._lastMouseClientX == null || this._lastMouseClientY == null) return;
+    // “re-rulează” logica de hover ca și cum mouse-ul s-ar fi mișcat
+    this._onMove({ clientX: this._lastMouseClientX, clientY: this._lastMouseClientY });
   }
+
 };
+
+

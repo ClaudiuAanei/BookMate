@@ -46,10 +46,27 @@ async openSlotExtra(slot) {
     const S = Employee.calendarState;
     if (!S.currentActiveSlotId) return;
 
+    const original = S.confirmedSlots.find(s => s.id === S.currentActiveSlotId);
+    if (!original) return;
+
+    S.slotToMoveSnapshot = {
+      id: original.id,
+      duration: original.duration,
+      startTime: original.startTime,
+      endTime: original.endTime,
+      fullDate: original.fullDate,
+      y: original.y,
+      status: original.status,
+      clientName: original.clientName,
+      services: original.services,
+      serviceIds: Array.isArray(original.serviceIds) ? [...original.serviceIds] : [],
+      price: original.price
+    };
+
     S.isMovingMode = true;
-    S.slotToMoveId = S.currentActiveSlotId;
+    S.slotToMoveId = original.id;
     S.currentActiveSlotId = null;
-    Employee.calendarActions.hidePill(); // hide management bar while moving
+    Employee.calendarActions.hidePill();
     Employee.calendarGrid.render();
   },
 
@@ -57,6 +74,7 @@ async openSlotExtra(slot) {
     const S = Employee.calendarState;
     S.isMovingMode = false;
     S.slotToMoveId = null;
+    S.slotToMoveSnapshot = null;
     S.proposedMoveSlot = null;
     S.currentActiveSlotId = null;
     Employee.calendarActions.closeMoveModal();
@@ -69,11 +87,18 @@ async openSlotExtra(slot) {
     const K = Employee.calendarCompute;
     const U = Employee.calendarUtils;
 
-    const original = S.confirmedSlots.find(s => s.id === S.slotToMoveId);
+    const original = S.slotToMoveSnapshot;
     if (!original) return;
 
+    if (col < 0 || col >= C.COLUMNS) return;
+
     const vTop = K.getValidPreviewPos(y, original.duration, col);
-    if (vTop == null) return;
+    if (vTop == null) {
+      Employee.notify?.err?.("Cannot move here (blocked/collision). Try another time slot.");
+      return;
+    }
+
+
 
     const targetDate = new Date(S.startDate);
     targetDate.setDate(S.startDate.getDate() + col);
@@ -93,21 +118,48 @@ async openSlotExtra(slot) {
     });
   },
 
-  confirmMove() {
-    const S = Employee.calendarState;
-    if (!S.proposedMoveSlot || !S.slotToMoveId) return;
+confirmMove() {
+  const S = Employee.calendarState;
 
-    const idx = S.confirmedSlots.findIndex(s => s.id === S.slotToMoveId);
-    if (idx !== -1) {
-      const p = S.proposedMoveSlot;
-      S.confirmedSlots[idx].y = p.y;
-      S.confirmedSlots[idx].startTime = p.startTime;
-      S.confirmedSlots[idx].endTime = p.endTime;
-      S.confirmedSlots[idx].fullDate = p.fullDate;
-      // keep status (or force confirmed — după preferință)
-      if (!S.confirmedSlots[idx].status) S.confirmedSlots[idx].status = "confirmed";
-    }
-
-    this.cancelMoveMode();
+  const snap = S.slotToMoveSnapshot;
+  if (!snap) {
+    Employee.notify?.err?.("Move mode is not active.");
+    return;
   }
+
+  const p = S.proposedMoveSlot;
+  if (!p) {
+    Employee.notify?.err?.("Click in the grid to choose a new position first.");
+    return;
+  }
+
+  const idx = S.confirmedSlots.findIndex(s => String(s.id) === String(snap.id));
+
+  if (idx !== -1) {
+    S.confirmedSlots[idx].y = p.y;
+    S.confirmedSlots[idx].startTime = p.startTime;
+    S.confirmedSlots[idx].endTime = p.endTime;
+    S.confirmedSlots[idx].fullDate = p.fullDate;
+  } else {
+    S.confirmedSlots.push({
+      id: snap.id,
+      fullDate: p.fullDate,
+      y: p.y,
+      duration: snap.duration,
+      startTime: p.startTime,
+      endTime: p.endTime,
+      status: snap.status,
+      clientName: snap.clientName,
+      email: "",
+      phone: "",
+      services: snap.services,
+      serviceIds: Array.isArray(snap.serviceIds) ? [...snap.serviceIds] : [],
+      price: snap.price,
+      _detailsLoaded: true,
+    });
+  }
+
+  this.cancelMoveMode();
+  Employee.calendarGrid.render();
+}
 };

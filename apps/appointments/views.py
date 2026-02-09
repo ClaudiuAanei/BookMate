@@ -1,7 +1,39 @@
+from ftplib import all_errors
+import json
 from datetime import datetime, timedelta
 from django.forms import model_to_dict
 from django.http import Http404, JsonResponse
+from django.shortcuts import redirect
 from .models import Appointment
+from .forms import AppointmentForm
+
+
+def create_appointment(request):
+    if not request.user.is_authenticated:
+        return redirect("login")
+    
+    if request.method != "POST":
+        return JsonResponse({"error": "Invalid request method"}, status=400)
+    
+    data = json.loads(request.body)
+
+    employee = getattr(request.user, "employee", None)
+    
+    form = AppointmentForm(data, employee=employee, by_employee=True)
+    if not form.is_valid():
+        all_errors = form.errors.get_json_data()
+
+        if '__all__' in all_errors:
+            error_msg = all_errors['__all__'][0]['message']
+        else:
+            first_field = next(iter(all_errors))
+            error_msg = all_errors[first_field][0]['message']
+
+        return JsonResponse({"error": str(error_msg)}, status=400)
+    
+    appointment = form.save()
+
+    return JsonResponse({"message": "Appointment created successfully", "appointment_id": appointment.id})
 
 
 # Create your views here.
