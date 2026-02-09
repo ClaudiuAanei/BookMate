@@ -351,6 +351,9 @@ try {
   S.clearSelection();
   this.hidePill();
   Employee.calendarGrid.render();
+  
+  // re-fetch from back-end
+  Employee.calendarData.scheduleReload(1000);
 
 } catch (err) {
   console.error(err);

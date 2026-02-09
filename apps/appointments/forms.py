@@ -16,8 +16,7 @@ class AppointmentForm(forms.ModelForm):
         fields = ["client", "date", "start", "services"]
         error_messages = {
             'client': {'required': "Client is required.",
-                       'invalid': "Invalid client selection.",
-                       'does_not_exist': "Selected client does not exist.",},
+                       'invalid': "Invalid client selection.",},
             'date': {'required': "Date is required.",
                      'invalid': "Invalid date format.",},
             'start': {'required': "Start time is required.",
@@ -39,7 +38,10 @@ class AppointmentForm(forms.ModelForm):
         
         date = cleaned.get("date") # type: ignore
         start = cleaned.get("start")  # type: ignore
-        services = cleaned.get("services")  # type: ignore
+        services = cleaned.get("services") # type: ignore
+
+        if not services:
+            raise forms.ValidationError("At least one service must be selected")
 
         if not date or not start:
             return cleaned
@@ -58,6 +60,9 @@ class AppointmentForm(forms.ModelForm):
         return cleaned
     
     def _validate_services_ownership(self, services):
+        if self.employee is None:
+            raise forms.ValidationError("Employee is required for appointment validation.")
+        
         allowed_ids = set(self.employee.services.values_list("id", flat=True))
         picked_ids = set(services.values_list("id",flat=True))
         invalid = picked_ids - allowed_ids
@@ -91,8 +96,11 @@ class AppointmentForm(forms.ModelForm):
         Checks for:
         1. Full-day or partial-day holidays/leave.
         2. Working hours boundaries.
-        3. Lunch break overlaps.
+        3. Full-day or partial-day holidays/leave.
         """
+        if not self.employee:
+            raise forms.ValidationError("")
+        
         working_conf = self.employee.program
 
         holiday = self.employee.holidays.filter(
@@ -126,25 +134,21 @@ class AppointmentForm(forms.ModelForm):
         services = self.cleaned_data["services"]
 
         end_time = self.cleaned_data.get("_computed_end_time")
-
-        custom_price = self.cleaned_data.get("price")
-        calculated_price = sum((s.price for s in services))
-
-        appointment.price = custom_price if custom_price and self.instance.pk else calculated_price
         
-        if self.by_employee and self.instance.pk is None:
+        custom_price = self.cleaned_data.get("price")
+        if custom_price is not None:
+            appointment.price = custom_price
+        else:
+            appointment.price = sum(s.price for s in services)
+        
+        if self.by_employee and not self.instance.pk:
             appointment.status = appointment.Status.CONFIRMED
 
-        if end_time is None:
-            total_minutes = sum(s.duration for s in services)
-            start_dt = datetime.combine(self.cleaned_data["date"], self.cleaned_data["start"])
-            end_time = (start_dt + timedelta(minutes=total_minutes)).time()
-            
         appointment.end = end_time
 
         if commit:
             appointment.save()
-            self.save_m2m()
+            self.save_m2m() # Important pentru services (ManyToManyField)
         
         return appointment
 

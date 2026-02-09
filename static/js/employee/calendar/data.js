@@ -1,11 +1,15 @@
 window.Employee = window.Employee || {};
 
 Employee.calendarData = {
-  endpoints: {
-    list: "/employee/api/appointments/",
-    create: "/employee/api/appointments/create-appointment/",
-    details: (id) => `/employee/api/appointments/${id}/details`,
-  },
+endpoints: {
+  list: "/employee/api/appointments/",
+  create: "/employee/api/appointments/create-appointment/",
+  details: (id) => `/employee/api/appointments/${id}/details/`,
+  updateStatus: (id) => `/employee/api/appointments/${id}/update-status/`,
+  move: (id) => `/employee/api/appointments/${id}/move/`,
+},
+
+
   async _getJSON(url) {
     const res = await fetch(url, {
       method: "GET",
@@ -280,5 +284,51 @@ async loadRangeAndRender() {
   return data;
 },
 
+  _toBackendStatus(uiStatus) {
+    const s = String(uiStatus || "").toLowerCase();
+
+    // ajustează aici dacă backend-ul tău vrea altceva
+    // (CONF/COMP/NOSH/DECL sunt cele mai comune)
+    if (s === "confirmed") return "CONF";
+    if (s === "completed") return "COMP";
+    if (s === "noshow") return "NOSH";
+    if (s === "declined") return "DECL";
+
+    return uiStatus; // fallback
+  },
+
+  async updateAppointmentStatus(appointmentId, uiStatus) {
+    const url = this.endpoints.updateStatus(appointmentId);
+
+    const payload = { status: this._toBackendStatus(uiStatus) };
+
+    // folosim wrapper-ul centralizat (are CSRF + JSON parsing)
+    return Employee.http.json(url, {
+      method: "PATCH", // dacă view-ul tău e PATCH/PUT, schimbă aici
+      body: JSON.stringify(payload),
+    });
+  },
+  
+  async moveAppointment(appointmentId, { date, start, end }) {
+    const url = this.endpoints.move(appointmentId);
+
+    const payload = {
+      date,   // "YYYY-MM-DD"
+      start,  // "HH:MM"
+      end,    // "HH:MM"
+    };
+
+    return Employee.http.json(url, {
+      method: "PATCH", // dacă view-ul e PUT/PATCH, schimbi aici
+      body: JSON.stringify(payload),
+    });
+  },
+
   async updateSlot(/* id, payload */) { return null; }
+};
+
+Employee.calendarData.scheduleReload = function (delayMs = 1000) {
+  setTimeout(() => {
+    Employee.calendarData.loadRangeAndRender();
+  }, delayMs);
 };

@@ -31,16 +31,51 @@ async openSlotExtra(slot) {
 
 },
 
-  updateSlotStatus(status) {
+  async updateSlotStatus(status) {
     const S = Employee.calendarState;
-    if (!S.currentActiveSlotId) return;
 
-    const idx = S.confirmedSlots.findIndex(s => s.id === S.currentActiveSlotId);
-    if (idx !== -1) {
-      S.confirmedSlots[idx].status = status;
-      Employee.calendarGrid.render();
+    const id = S.currentActiveSlotId;
+    if (!id) return;
+
+    // optimistic UI (opțional)
+    const idx = S.confirmedSlots.findIndex(s => String(s.id) === String(id));
+    const prev = (idx !== -1) ? S.confirmedSlots[idx].status : null;
+
+    try {
+      // 1) call backend
+      const res = await Employee.calendarData.updateAppointmentStatus(id, status);
+
+      // 2) update UI local
+      if (idx !== -1) {
+        S.confirmedSlots[idx].status = status;
+        Employee.calendarGrid.render();
+      }
+
+      // 3) toast OK (folosește ce întoarce backend-ul dacă există)
+      const okMsg = res?.message || "Status updated.";
+      Employee.notify?.ok?.(okMsg);
+
+      Employee.calendarData.scheduleReload(1000);
+
+    } catch (err) {
+      console.error(err);
+
+      // rollback UI dacă ai făcut optimistic
+      if (idx !== -1 && prev != null) {
+        S.confirmedSlots[idx].status = prev;
+        Employee.calendarGrid.render();
+      }
+
+      const serverMsg =
+        err?.data?.error ||
+        err?.data?.message ||
+        err?.message ||
+        "Failed to update status.";
+
+      Employee.notify?.err?.(serverMsg);
     }
   },
+
 
   startMoveMode() {
     const S = Employee.calendarState;
@@ -118,8 +153,9 @@ async openSlotExtra(slot) {
     });
   },
 
-confirmMove() {
+async confirmMove() {
   const S = Employee.calendarState;
+  const U = Employee.calendarUtils;
 
   const snap = S.slotToMoveSnapshot;
   if (!snap) {
@@ -133,33 +169,50 @@ confirmMove() {
     return;
   }
 
-  const idx = S.confirmedSlots.findIndex(s => String(s.id) === String(snap.id));
+  const appointmentId = snap.id;
 
-  if (idx !== -1) {
-    S.confirmedSlots[idx].y = p.y;
-    S.confirmedSlots[idx].startTime = p.startTime;
-    S.confirmedSlots[idx].endTime = p.endTime;
-    S.confirmedSlots[idx].fullDate = p.fullDate;
-  } else {
-    S.confirmedSlots.push({
-      id: snap.id,
-      fullDate: p.fullDate,
-      y: p.y,
-      duration: snap.duration,
-      startTime: p.startTime,
-      endTime: p.endTime,
-      status: snap.status,
-      clientName: snap.clientName,
-      email: "",
-      phone: "",
-      services: snap.services,
-      serviceIds: Array.isArray(snap.serviceIds) ? [...snap.serviceIds] : [],
-      price: snap.price,
-      _detailsLoaded: true,
-    });
+  // payload către backend
+  const dateStr = U.toDateKey(new Date(p.fullDate)); // "YYYY-MM-DD"
+  const payload = {
+    date: dateStr,
+    start: p.startTime,
+    end: p.endTime
+  };
+
+  try {
+    const res = await Employee.calendarData.moveAppointment(appointmentId, payload);
+
+    // ✅ update local UI (mutăm slot-ul în calendar)
+    const idx = S.confirmedSlots.findIndex(s => String(s.id) === String(appointmentId));
+    if (idx !== -1) {
+      S.confirmedSlots[idx].y = p.y;
+      S.confirmedSlots[idx].startTime = p.startTime;
+      S.confirmedSlots[idx].endTime = p.endTime;
+      S.confirmedSlots[idx].fullDate = p.fullDate;
+    }
+
+    // ✅ ieșim din move mode + rerender
+    this.cancelMoveMode();
+    Employee.calendarGrid.render();
+
+    const okMsg = res?.message || "Appointment moved.";
+    Employee.notify?.ok?.(okMsg);
+    Employee.calendarData.scheduleReload(1000);
+
+  } catch (err) {
+    console.error(err);
+
+    const serverMsg =
+      err?.data?.error ||
+      err?.data?.message ||
+      err?.message ||
+      "Failed to move appointment.";
+
+    Employee.notify?.err?.(serverMsg);
+
+    // rămâi în move mode ca să poți încerca alt interval
+    // (NU apelăm cancelMoveMode aici)
   }
+},
 
-  this.cancelMoveMode();
-  Employee.calendarGrid.render();
-}
 };
