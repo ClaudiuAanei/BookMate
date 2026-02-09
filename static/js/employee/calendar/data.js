@@ -7,7 +7,9 @@ endpoints: {
   details: (id) => `/employee/api/appointments/${id}/details/`,
   updateStatus: (id) => `/employee/api/appointments/${id}/update-status/`,
   move: (id) => `/employee/api/appointments/${id}/move/`,
+  updateServices: (id) => `/employee/api/appointments/${id}/update-services/`,
 },
+
 
 
   async _getJSON(url) {
@@ -324,7 +326,19 @@ async loadRangeAndRender() {
     });
   },
 
-  async updateSlot(/* id, payload */) { return null; }
+  async updateAppointmentServices(appointmentId, serviceIds) {
+  const url = this.endpoints.updateServices(appointmentId);
+
+  const payload = {
+    services: Array.isArray(serviceIds) ? serviceIds : [],
+  };
+
+  return Employee.http.json(url, {
+    method: "PATCH",
+    body: JSON.stringify(payload),
+  });
+},
+
 };
 
 Employee.calendarData.scheduleReload = function (delayMs = 1000) {

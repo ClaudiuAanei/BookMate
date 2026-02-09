@@ -7,5 +7,6 @@ urlpatterns = [
     path("employee/api/appointments/<int:appointment_id>/details/", views.get_appointment_details, name="get_appointment_details"),
     path("employee/api/appointments/<int:appointment_id>/update-status/", views.update_appointment_status, name="update-appointment-status"),
     path("employee/api/appointments/<int:appointment_id>/move/", views.move_appointment, name="move-appointments"),
+    path("employee/api/appointments/<int:appointment_id>/update-services/", views.update_appointment_services, name="update-appointment-services"),
 ]
 

@@ -10,7 +10,18 @@ async openSlotExtra(slot) {
     Employee.calendarActions.hidePill();
   }
 
-  if (S.currentActiveSlotId === slot.id) return;
+  // 🔁 dacă dai click din nou pe același slot -> retrigger animation
+  if (S.currentActiveSlotId === slot.id) {
+    const pill = Employee.calendarActions.el.pill;
+    if (pill?.classList.contains("is-visible")) {
+      pill.classList.remove("is-switching");
+      void pill.offsetWidth;          // force reflow => CSS animation restarts
+      pill.classList.add("is-switching");
+      setTimeout(() => pill.classList.remove("is-switching"), 150);
+    }
+    return;
+  }
+
 
   const pill = Employee.calendarActions.el.pill;
   const isVisible = pill.classList.contains("is-visible");

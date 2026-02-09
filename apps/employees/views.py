@@ -11,8 +11,7 @@ def index(request):
     if not request.user.is_authenticated:
         raise Http404()
     
-    employee = get_object_or_404(Employee, user=request.user) # Handle the case where the employee does not exist for the user
-
+    employee = get_object_or_404(Employee, user=request.user)
     context = {}
 
     calendar = {

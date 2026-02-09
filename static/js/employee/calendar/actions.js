@@ -348,12 +348,19 @@ try {
   });
 
   Employee.notify.ok(okMsg);
+  
+  // reset navbar selections (client + services)
+  Employee.store?.clearClient?.();
+  Employee.store?.clearConfirmedServices?.();
+
+
   S.clearSelection();
   this.hidePill();
   Employee.calendarGrid.render();
-  
+
   // re-fetch from back-end
   Employee.calendarData.scheduleReload(1000);
+  
 
 } catch (err) {
   console.error(err);
@@ -596,7 +603,7 @@ if (!this._editSaved && this._editBackup) {
     this.el.editModal?.classList.remove("is-open");
   },
 
-saveEditServices() {
+async saveEditServices() {
   const S = Employee.calendarState;
   const slot = S.confirmedSlots.find(s => s.id === S.currentActiveSlotId);
   if (!slot) return;
@@ -609,31 +616,54 @@ saveEditServices() {
 
   const totals = Employee.servicesCatalog.computeTotals(selectedIds);
 
-  // 🚫 nu permitem programare fără servicii
   if (!selectedIds.length || Number(totals.duration) <= 0) {
     Employee.notify?.err?.("You must select at least one service.");
-    return; // ține modalul deschis
+    return; 
   }
 
   const check = this._validateResizeNoCollision(slot, totals.duration);
   if (!check.ok) {
     Employee.notify?.err?.(check.reason || "Invalid selection");
-    return; // ține modalul deschis
+    return;
   }
 
-  slot.serviceIds = selectedIds;
-  slot.services = totals.names.join(", ");
-  slot.price = totals.total;
-  slot.duration = totals.duration;
-  slot.endTime = this._addMinutesToHHMM(slot.startTime, slot.duration);
+  try {
+    const res = await Employee.calendarData.updateAppointmentServices(slot.id, selectedIds);
 
-  this._editSaved = true;
-  this._editBackup = null;
+    slot.serviceIds = selectedIds;
+    slot.services = totals.names.join(", ");
+    slot.price = totals.total;
+    slot.duration = totals.duration;
+    slot.endTime = this._addMinutesToHHMM(slot.startTime, slot.duration);
 
-  this.closeEditModal();
-  this.updateActionBar(slot, true);
-  Employee.calendarGrid.render();
-  Employee.notify?.ok?.("Services updated (local).");
+    this._editSaved = true;
+    this._editBackup = null;
+
+    this.closeEditModal();
+
+    this.updateActionBar(slot, true);
+    Employee.calendarGrid.render();
+
+    Employee.notify?.ok?.(res?.message || "Services updated.");
+
+    // ✅ close management pill after saving changes
+    Employee.calendarState.currentActiveSlotId = null;
+    this.hidePill();
+
+
+    Employee.calendarData.scheduleReload?.(1000);
+
+  } catch (err) {
+    console.error(err);
+
+    const serverMsg =
+      err?.data?.error ||
+      err?.data?.message ||
+      err?.message ||
+      "Failed to update services.";
+
+    Employee.notify?.err?.(serverMsg);
+  }
 },
 
   openMoveModal({ from, to, date }) {

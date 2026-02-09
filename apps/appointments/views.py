@@ -16,7 +16,6 @@ def create_appointment(request):
         return JsonResponse({"error": "Invalid request method"}, status=400)
     
     data = json.loads(request.body)
-    print(data)
 
     employee = getattr(request.user, "employee", None)
     
@@ -84,11 +83,8 @@ def get_appointment_details(request, appointment_id):
     if not employee:
         raise Http404() 
 
-    appointment = Appointment.objects.filter(employee=request.user.employee, id=appointment_id).first()
+    appointment = get_object_or_404(Appointment, employee=request.user.employee, id=appointment_id)
 
-    if not appointment:
-        raise Http404()
-    
     context = {
         "id": appointment.id,
         "client": model_to_dict(appointment.client, fields=["id", "phone", "email", "first_name", "last_name"]),
@@ -157,7 +153,6 @@ def move_appointment(request, appointment_id):
             "price": appointment.price, # Păstrăm prețul existent
         }
     
-    
     form = AppointmentForm(current_data, employee=employee, by_employee=True, instance=appointment)
 
     if not form.is_valid():
@@ -173,4 +168,46 @@ def move_appointment(request, appointment_id):
     
     form.save()
     return JsonResponse({"message": "Appointment moved."}, status=200)
+
+
+def update_appointment_services(request, appointment_id):
+    if not request.user.is_authenticated:
+        raise Http404()
+    
+    employee = getattr(request.user, "employee", None)
+    if not employee:
+        raise Http404()
+    
+    if request.method != "PATCH":
+        return JsonResponse({"error": "Method not allowed."}, status=405)
+
+    appointment = get_object_or_404(Appointment, employee=employee, pk=appointment_id)
+
+    data = json.loads(request.body)
+    services = data.get("services", [])
+
+    current_data = {
+            "client": appointment.client_id,
+            "services": services,
+            "date": appointment.date,
+            "start": appointment.start,
+        }
+    
+    form = AppointmentForm(current_data, employee=employee, by_employee=True, instance=appointment)
+
+    if not form.is_valid():
+        all_errors = form.errors.get_json_data()
+        
+        if '__all__' in all_errors:
+            error_msg = all_errors['__all__'][0]['message']
+        else:
+            first_field = next(iter(all_errors))
+            error_msg = all_errors[first_field][0]['message']
+
+        return JsonResponse({"error": str(error_msg)}, status=400)
+    
+    form.save()
+
+    return JsonResponse({"message": "Services updated successfully."})
+
 

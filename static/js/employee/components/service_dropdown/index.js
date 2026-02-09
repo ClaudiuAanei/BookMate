@@ -85,6 +85,28 @@ Employee.serviceDropdown = {
     // ---- hydrate from store (CONFIRMED)
     const confirmed = (Employee.store?.confirmedServiceIds || []).map(Number);
     let draft = new Set(confirmed);
+    
+    // 🔁 keep UI in sync if store changes from outside (ex: after booking)
+document.addEventListener("employee:services-confirmed", (e) => {
+  const ids = (e.detail || []).map(Number);
+
+  // update internal state
+  confirmed.length = 0;
+  confirmed.push(...ids);
+  draft = new Set(ids);
+
+  // update checkboxes
+  inputs.forEach(i => { i.checked = draft.has(Number(i.value)); });
+
+  // reset UX state and close menu
+  root.classList.remove("keep-open");
+  root.classList.remove("force-close");
+  hide();
+
+  // refresh label/badge/meta
+  this._refreshUI({ badge, label, meta, clearBtn, confirmBtn, root, inputs });
+});
+
 
     inputs.forEach(i => {
       i.checked = draft.has(Number(i.value));

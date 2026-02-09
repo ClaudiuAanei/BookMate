@@ -102,11 +102,23 @@ Employee.calendarCompute = {
       )
     );
 
-    // slide away from zones
+    // slide away from zones (BUT never allow vTop outside grid)
+    const gridBottomY = gridStartY + (C.endHour - C.startHour) * C.pixelPerHour;
+
     for (const z of zones) {
-      if (mouseY < z.y && vTop + cH > z.y) vTop = z.y - cH;
-      else if (mouseY > z.y + z.h && vTop < z.y + z.h) vTop = z.y + z.h;
+      // if we are above a blocked zone but our block would overlap it => try to place right before it
+      if (mouseY < z.y && vTop + cH > z.y) {
+        vTop = Math.max(gridStartY, z.y - cH);
+      }
+      // if we are below a blocked zone but our block would overlap it => try to place right after it
+      else if (mouseY > z.y + z.h && vTop < z.y + z.h) {
+        vTop = Math.min(gridBottomY - cH, z.y + z.h);
+      }
     }
+
+    // final clamp again (safety)
+    vTop = Math.max(gridStartY, Math.min(vTop, gridBottomY - cH));
+
 
     // final overlap
     const conflict = zones.some(z => vTop < z.y + z.h && vTop + cH > z.y);
