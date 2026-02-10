@@ -44,8 +44,8 @@ Employee.notify = (function () {
     bar.style.transition = "none";
     bar.style.width = "100%";
 
-    toast.classList.remove("toast-hidden");
-    toast.classList.add("toast-visible");
+    toast.classList.remove("-translate-x-full", "opacity-0", "pointer-events-none");
+    toast.classList.add("translate-x-0", "opacity-100", "pointer-events-auto");
 
     requestAnimationFrame(() => {
       bar.style.transition = `width ${DURATION}ms linear`;
@@ -56,8 +56,8 @@ Employee.notify = (function () {
   }
 
   function hide() {
-    toast.classList.remove("toast-visible");
-    toast.classList.add("toast-hidden");
+    toast.classList.remove("translate-x-0", "opacity-100", "pointer-events-auto");
+    toast.classList.add("-translate-x-full", "opacity-0", "pointer-events-none");
   }
 
   return {

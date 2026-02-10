@@ -1,16 +1,12 @@
-import json
-from django.http import Http404
-from django.shortcuts import render
-# from django.contrib.auth.decorators import login_required
 from .models import Employee
 from .services import *
-from django.shortcuts import get_object_or_404
+from django.shortcuts import render, get_object_or_404
+from apps.appointments.helpers import employee_required
+# from django.contrib.auth.decorators import login_required
 
 
+@employee_required
 def index(request):
-    if not request.user.is_authenticated:
-        raise Http404()
-    
     employee = get_object_or_404(Employee, user=request.user)
     context = {}
 
@@ -20,8 +16,7 @@ def index(request):
         "public_holidays": serialize_public_holiday(),
     }
 
-    context["services"] = list(employee.services.all().values("id", "name", "duration", "price", "description")) or []
     context["calendar"] = calendar
+    context["services"] = list(employee.services.all().values("id", "name", "duration", "price", "description")) or []
 
-    print(context)
     return render(request, "employee/calendar/index.html", context)

@@ -1,36 +1,56 @@
+<!-- Toast notification -->
 <div id="toast-notification"
-     class="toast-hidden fixed top-6 left-1/2 -translate-x-1/2 z-[200]
-            flex items-center w-full max-w-sm p-4
-            bg-[#18181b] rounded-lg shadow-2xl
-            border-l-4 transition-all duration-500 ease-out"
-     role="alert">
+     role="alert"
+     class="
+       fixed top-20 left-6 z-[200]
+
+       flex items-center w-full max-w-sm p-4 gap-3
+       bg-[#18181b] text-gray-200
+       rounded-lg shadow-2xl border-l-4
+
+       transition-all duration-500 ease-out
+
+       -translate-x-full opacity-0 pointer-events-none
+     ">
 
   <!-- Icon -->
   <div id="toast-icon-bg"
-       class="inline-flex items-center justify-center flex-shrink-0
-              w-8 h-8 rounded-lg">
+       class="
+         flex items-center justify-center
+         w-8 h-8 rounded-lg
+         bg-white/10 text-white
+       ">
     <i id="toast-icon" class="ph text-sm"></i>
   </div>
 
   <!-- Message -->
-  <div class="ml-3 flex-1">
+  <div class="flex-1">
     <p id="toast-message"
-       class="text-sm font-medium text-gray-200">
+       class="text-sm font-medium leading-tight">
       Message
     </p>
   </div>
 
-  <!-- Close -->
+  <!-- Close button -->
   <button type="button"
           onclick="Employee.notify.hide()"
-          class="ml-2 text-gray-400 hover:text-white
-                 rounded-lg p-1.5 hover:bg-white/5
-                 inline-flex h-8 w-8 items-center justify-center">
+          class="
+            ml-2 inline-flex h-8 w-8 items-center justify-center
+            rounded-lg p-1.5
+            text-gray-400
+            hover:text-white
+            hover:bg-white/5
+          ">
     <i class="ph ph-x text-sm"></i>
   </button>
 
-  <!-- Progress -->
+  <!-- Progress bar -->
   <div id="toast-progress"
-       class="absolute bottom-0 left-0 h-[3px] w-full"></div>
+       class="
+         absolute bottom-0 left-0
+         h-[3px] w-full
+         bg-white/20
+       ">
+  </div>
 
 </div>

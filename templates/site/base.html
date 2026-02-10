@@ -7,16 +7,13 @@
     <title>{% block title %}AgendaPro - Django Portfolio{% endblock %}</title>
     
     <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="{% static 'css/employee/style.css' %}">
     
     <!-- Phosphor Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     
     <!-- Fonts -->
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap');
-
         html {
         scroll-behavior: smooth;
         }
@@ -25,7 +22,6 @@
             font-family: 'Inter', sans-serif;
             background-color: #020617; /* Slate 950 */
         }
-        .font-mono { font-family: 'JetBrains Mono', monospace; }
         
         /* Custom Scrollbar */
         ::-webkit-scrollbar { width: 8px; }

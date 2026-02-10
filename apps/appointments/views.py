@@ -20,7 +20,7 @@ def create_appointment(request):
     if isinstance(appointment, JsonResponse):
         return appointment
 
-    return JsonResponse({"message": "Appointment created successfully", "appointment_id": appointment.id})
+    return JsonResponse({"message": "Appointment created successfully", "appointment_id": appointment.id}, status= 201)
 
 @employee_required
 def get_appointments(request):
