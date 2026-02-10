@@ -1,12 +1,263 @@
 {% extends 'site/base.html' %}
 
-{% block title %}Acasă - Site-ul Meu Django{% endblock %}
+{% block title %}Home - Book Appointment M8{% endblock %}
 
 {% block content %}
-  <div class="row">
-    <div class="col-md-12 text-center">
-      <h1>Bine ai venit pe site-ul meu Django!</h1>
-      <p>Acesta este un site de exemplu pentru proiectul meu.</p>
-    </div>
-  </div>
+<div class="bg-[#020617] min-h-screen text-slate-300 selection:bg-emerald-500/30 selection:text-emerald-200">
+    
+    <section class="relative pt-24 pb-20 md:pt-32 md:pb-32 overflow-hidden border-b border-slate-800/50">
+        
+        <div class="absolute inset-0 z-0">
+            <div class="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] opacity-20"></div>
+            <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-emerald-600/10 rounded-full blur-[100px] pointer-events-none"></div>
+        </div>
+
+        <div class="relative z-10 container mx-auto px-4 text-center">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-slate-700 bg-slate-900/80 backdrop-blur-sm text-xs font-mono text-emerald-400 mb-8 animate-fade-in-up shadow-lg shadow-emerald-900/20">
+                <span class="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                Django Project 2026
+            </div>
+
+            <h1 class="text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-6 tracking-tight leading-tight max-w-5xl mx-auto">
+                Booking System<br>
+                <span class="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-400">Simple, Fast & Efficient</span>
+            </h1>
+
+            <p class="text-lg md:text-xl text-slate-400 mb-10 leading-relaxed max-w-2xl mx-auto">
+                A full-stack appointment management solution featuring real-time availability, role-based access, and a modern responsive interface.
+            </p>
+
+            <div class="inline-flex flex-col md:flex-row items-center gap-4 mb-10 p-4 rounded-xl bg-slate-900/60 border border-slate-700/50 backdrop-blur-md">
+                <span class="text-xs font-bold text-emerald-500 uppercase tracking-widest px-2">Demo Access</span>
+                <div class="h-px w-full md:w-px md:h-4 bg-slate-700"></div>
+                <p class="text-slate-300 font-mono text-sm">
+                    user: <span class="text-white font-bold">demo.account</span> 
+                    <span class="mx-2 text-slate-600">|</span> 
+                    pass: <span class="text-white font-bold">#Welcome2026</span>
+                </p>
+            </div>
+
+            <div class="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
+                {% if not user.is_authenticated %}
+                    <a href="{% url 'register' %}" class="w-full sm:w-auto px-8 py-4 bg-emerald-600 text-white font-semibold rounded-xl hover:bg-emerald-500 transition-all hover:scale-105 shadow-lg shadow-emerald-600/25 flex items-center justify-center gap-2 group">
+                        <i class="ph-bold ph-rocket-launch text-xl group-hover:-translate-y-1 transition-transform"></i>
+                        Create Account
+                    </a>
+                    <a href="{% url 'login' %}" class="w-full sm:w-auto px-8 py-4 border border-slate-700 text-slate-300 font-semibold rounded-xl hover:bg-slate-800/50 hover:text-white transition-colors flex items-center justify-center gap-2">
+                        Log In
+                    </a>
+                {% else %}
+                    <a href="{% url 'employee_dashboard' %}" class="w-full sm:w-auto px-8 py-4 bg-emerald-600 text-white font-semibold rounded-xl hover:bg-emerald-500 transition-all hover:scale-105 shadow-lg shadow-emerald-600/25 flex items-center justify-center gap-2">
+                        <i class="ph-bold ph-calendar-plus text-xl"></i>
+                        Open Dashboard
+                    </a>
+                {% endif %}
+                
+                <a href="#features" class="w-full sm:w-auto px-8 py-4 text-slate-400 hover:text-emerald-400 font-semibold transition-colors flex items-center justify-center gap-2">
+                    Features <i class="ph-bold ph-arrow-down"></i>
+                </a>
+            </div>
+
+            <div class="pt-8 border-t border-slate-800/50 flex flex-wrap justify-center gap-8 text-slate-600 opacity-80">
+                <i class="ph-bold ph-code text-3xl hover:text-emerald-500 hover:scale-110 transition-all duration-300" title="Django"></i>
+                <i class="ph-bold ph-database text-3xl hover:text-blue-500 hover:scale-110 transition-all duration-300" title="PostgreSQL"></i>
+                <i class="ph-bold ph-file-js text-3xl hover:text-yellow-400 hover:scale-110 transition-all duration-300" title="JavaScript"></i>
+                <i class="ph-bold ph-paint-brush text-3xl hover:text-cyan-500 hover:scale-110 transition-all duration-300" title="Tailwind"></i>
+            </div>
+        </div>
+    </section>
+
+    <section id="features" class="py-24 container mx-auto px-4 scroll-mt-20">
+        <div class="flex flex-col lg:flex-row gap-16">
+            
+            <div class="lg:w-2/3">
+                <h3 class="text-3xl font-bold text-white mb-2 flex items-center gap-3">
+                    <i class="ph-bold ph-lightning text-emerald-500"></i> 
+                    Core Capabilities
+                </h3>
+                <p class="text-slate-400 mb-10 text-lg">Everything you need to manage appointments efficiently.</p>
+
+                <ul class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-10">
+                    <li class="flex items-start gap-4 group">
+                        <div class="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center flex-shrink-0 group-hover:bg-emerald-500/20 transition-colors">
+                            <i class="ph-bold ph-magnifying-glass text-emerald-500 text-xl"></i>
+                        </div>
+                        <div>
+                            <strong class="block text-slate-200 mb-1">Unified Smart Search</strong>
+                            <span class="text-slate-400 text-sm leading-relaxed">Find clients instantly by name, phone, or email. Auto-binds data to new bookings.</span>
+                        </div>
+                    </li>
+
+                    <li class="flex items-start gap-4 group">
+                        <div class="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center flex-shrink-0 group-hover:bg-emerald-500/20 transition-colors">
+                            <i class="ph-bold ph-list-dashes text-emerald-500 text-xl"></i>
+                        </div>
+                        <div>
+                            <strong class="block text-slate-200 mb-1">Tailored Service Menu</strong>
+                            <span class="text-slate-400 text-sm leading-relaxed">Dynamic dropdowns that only show services assigned to the selected employee.</span>
+                        </div>
+                    </li>
+
+                    <li class="flex items-start gap-4 group">
+                        <div class="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center flex-shrink-0 group-hover:bg-emerald-500/20 transition-colors">
+                            <i class="ph-bold ph-calendar text-emerald-500 text-xl"></i>
+                        </div>
+                        <div>
+                            <strong class="block text-slate-200 mb-1">Intelligent Slot Engine</strong>
+                            <span class="text-slate-400 text-sm leading-relaxed">Auto-generates time slots based on service duration, breaks, and shifts.</span>
+                        </div>
+                    </li>
+
+                    <li class="flex items-start gap-4 group">
+                        <div class="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center flex-shrink-0 group-hover:bg-emerald-500/20 transition-colors">
+                            <i class="ph-bold ph-clock-warning text-emerald-500 text-xl"></i>
+                        </div>
+                        <div>
+                            <strong class="block text-slate-200 mb-1">Overtime Guard</strong>
+                            <span class="text-slate-400 text-sm leading-relaxed">Alerts users if an appointment exceeds the employee's defined working hours.</span>
+                        </div>
+                    </li>
+
+                    <li class="flex items-start gap-4 group">
+                        <div class="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center flex-shrink-0 group-hover:bg-emerald-500/20 transition-colors">
+                            <i class="ph-bold ph-shield-check text-emerald-500 text-xl"></i>
+                        </div>
+                        <div>
+                            <strong class="block text-slate-200 mb-1">Collision-Free Engine</strong>
+                            <span class="text-slate-400 text-sm leading-relaxed">Prevents overlaps with existing bookings, vacations, or public holidays.</span>
+                        </div>
+                    </li>
+
+                    <li class="flex items-start gap-4 group">
+                        <div class="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center flex-shrink-0 group-hover:bg-emerald-500/20 transition-colors">
+                            <i class="ph-bold ph-arrows-clockwise text-emerald-500 text-xl"></i>
+                        </div>
+                        <div>
+                            <strong class="block text-slate-200 mb-1">Real-Time Operations</strong>
+                            <span class="text-slate-400 text-sm leading-relaxed">Update clients and services on the fly with instant conflict re-checks via AJAX.</span>
+                        </div>
+                    </li>
+
+                    <li class="flex items-start gap-4 group">
+                        <div class="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center flex-shrink-0 group-hover:bg-emerald-500/20 transition-colors">
+                            <i class="ph-bold ph-lightning-slash text-emerald-500 text-xl"></i>
+                        </div>
+                        <div>
+                            <strong class="block text-slate-200 mb-1">SPA Experience</strong>
+                            <span class="text-slate-400 text-sm leading-relaxed">Instant interactions without page reloads, powered by Fetch API.</span>
+                        </div>
+                    </li>
+
+                     <li class="flex items-start gap-4 group">
+                        <div class="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center flex-shrink-0 group-hover:bg-emerald-500/20 transition-colors">
+                            <i class="ph-bold ph-notification text-emerald-500 text-xl"></i>
+                        </div>
+                        <div>
+                            <strong class="block text-slate-200 mb-1">Interactive Feedback</strong>
+                            <span class="text-slate-400 text-sm leading-relaxed">Elegant toast notifications for success, warnings, or system errors.</span>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="lg:w-1/3">
+                <div class="sticky top-24 bg-slate-900/80 p-6 rounded-2xl border border-slate-800 shadow-2xl backdrop-blur-xl">
+                    <h3 class="text-xl font-bold text-white mb-6 flex items-center gap-2">
+                        <i class="ph-bold ph-stack text-blue-400"></i> Technical Stack
+                    </h3>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <p class="text-xs font-semibold text-slate-500 uppercase mb-2">Backend</p>
+                            <div class="flex flex-wrap gap-2">
+                                <span class="px-3 py-1 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-lg text-sm font-mono flex items-center gap-1">
+                                    <i class="ph-fill ph-snake"></i> Python 3.14
+                                </span>
+                                <span class="px-3 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-lg text-sm font-mono flex items-center gap-1">
+                                    <i class="ph-bold ph-brackets-curly"></i> Django 6.0
+                                </span>
+                            </div>
+                        </div>
+
+                        <div>
+                            <p class="text-xs font-semibold text-slate-500 uppercase mb-2">Data</p>
+                            <div class="flex flex-wrap gap-2">
+                                <span class="px-3 py-1 bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 rounded-lg text-sm font-mono flex items-center gap-1">
+                                    <i class="ph-fill ph-database"></i> PostgreSQL
+                                </span>
+                            </div>
+                        </div>
+
+                        <div>
+                            <p class="text-xs font-semibold text-slate-500 uppercase mb-2">Frontend</p>
+                            <div class="flex flex-wrap gap-2">
+                                <span class="px-3 py-1 bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 rounded-lg text-sm font-mono flex items-center gap-1">
+                                    <i class="ph-fill ph-paint-brush"></i> Tailwind CSS
+                                </span>
+                                <span class="px-3 py-1 bg-yellow-500/10 text-yellow-400 border border-yellow-500/20 rounded-lg text-sm font-mono flex items-center gap-1">
+                                    <i class="ph-bold ph-file-js"></i> JavaScript
+                                </span>
+                                <span class="px-3 py-1 bg-yellow-500/10 text-yellow-400 border border-yellow-500/20 rounded-lg text-sm font-mono flex items-center gap-1">
+                                    <i class="ph-bold ph-robot"> A.I.</i> 
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 pt-6 border-t border-slate-800">
+                        <p class="text-slate-400 text-sm italic">
+                            "Built with scalability and clean code principles in mind."
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <section class="py-24 bg-[#0B1121] border-t border-slate-900">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl font-bold text-white flex items-center justify-center gap-3">
+                    <i class="ph-bold ph-map-trifold text-emerald-500"></i>
+                    Future Roadmap
+                </h2>
+                <div class="h-1 w-24 bg-gradient-to-r from-emerald-600 to-teal-600 mx-auto mt-4 rounded-full"></div>
+                <p class="text-slate-400 mt-4 max-w-2xl mx-auto">Planned updates to extend functionality and user experience.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+                <div class="bg-slate-800/30 p-8 rounded-2xl border border-slate-800 hover:border-emerald-500/50 hover:bg-slate-800/50 transition-all duration-300 group hover:-translate-y-1">
+                    <div class="w-14 h-14 bg-emerald-500/10 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-emerald-500 transition-colors duration-300 shadow-lg shadow-emerald-900/20">
+                        <i class="ph-bold ph-shield-check text-3xl text-emerald-500 group-hover:text-white"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-3">1. Secure Auth</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed">
+                        Implementing robust authentication with Google OAuth2 and session management. Includes automated SMTP services for booking confirmations.
+                    </p>
+                </div>
+
+                <div class="bg-slate-800/30 p-8 rounded-2xl border border-slate-800 hover:border-purple-500/50 hover:bg-slate-800/50 transition-all duration-300 group hover:-translate-y-1">
+                    <div class="w-14 h-14 bg-purple-500/10 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-purple-500 transition-colors duration-300 shadow-lg shadow-purple-900/20">
+                        <i class="ph-bold ph-users-three text-3xl text-purple-500 group-hover:text-white"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-3">2. Admin Panel</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed">
+                        Dedicated dashboard for administrators with full CRUD capabilities. Manage staff profiles and client data using Django's permission system.
+                    </p>
+                </div>
+
+                <div class="bg-slate-800/30 p-8 rounded-2xl border border-slate-800 hover:border-blue-500/50 hover:bg-slate-800/50 transition-all duration-300 group hover:-translate-y-1">
+                    <div class="w-14 h-14 bg-blue-500/10 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-blue-600 transition-colors duration-300 shadow-lg shadow-blue-900/20">
+                        <i class="ph-bold ph-chart-line-up text-3xl text-blue-500 group-hover:text-white"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-3">3. Analytics</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed">
+                        Insights powered by Django ORM aggregations. Generate reports on booking trends, revenue, and employee utilization.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
 {% endblock %}

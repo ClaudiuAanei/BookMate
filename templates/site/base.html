@@ -1,46 +1,86 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="ro">
+<html lang="en" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Site-ul Meu Django{% endblock %}</title>
+    <title>{% block title %}AgendaPro - Django Portfolio{% endblock %}</title>
+    
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <!-- Fonts -->
     <style>
-        /* Adăugăm un font modern (Inter) pentru un look profesional */
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; }
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap');
+
+        html {
+        scroll-behavior: smooth;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #020617; /* Slate 950 */
+        }
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
     </style>
+
     {% block extra_css %}{% endblock %}
 </head>
-<body class="">
+<body class="text-slate-300 antialiased selection:bg-emerald-500 selection:text-white flex flex-col min-h-screen">
 
     {% include 'site/partials/navbar.html' %}
 
-    <div class="container mt-3">
+    <!-- Django Messages (Alerts) -->
+    <div class="fixed top-20 right-4 z-50 w-full max-w-sm space-y-2 pointer-events-none">
         {% if messages %}
             {% for message in messages %}
-                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                    {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                <div class="pointer-events-auto flex items-center p-4 mb-4 text-sm rounded-lg shadow-lg border {% if message.tags == 'success' %}text-emerald-400 border-emerald-800 bg-emerald-950/90{% elif message.tags == 'error' %}text-rose-400 border-rose-800 bg-rose-950/90{% else %}text-blue-400 border-blue-800 bg-blue-950/90{% endif %} backdrop-blur-sm" role="alert">
+                    <i class="ph-bold {% if message.tags == 'success' %}ph-check-circle{% elif message.tags == 'error' %}ph-warning-circle{% else %}ph-info{% endif %} text-lg mr-2"></i>
+                    <div>
+                        {{ message }}
+                    </div>
+                    <button type="button" class="ml-auto -mx-1.5 -my-1.5 rounded-lg p-1.5 inline-flex items-center justify-center h-8 w-8 hover:bg-slate-800/50 transition-colors" onclick="this.parentElement.remove()">
+                        <i class="ph-bold ph-x"></i>
+                    </button>
                 </div>
             {% endfor %}
         {% endif %}
     </div>
 
-    <main class="">
+    <!-- Main Content -->
+    <main class="flex-grow pt-20">
         {% block content %}
         {% endblock %}
     </main>
 
-    <footer class="bg-light text-center py-4 mt-5 border-t border-gray-200 text-sm text-gray-600">
-        <div class="text-center text-muted text-sm mb-0 px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 shadow-sm transition-colors hover:bg-gray-200 hover:text-gray-800 hover:shadow-md ">
-            © 2024 Numele Proiectului Tău
+    <!-- Footer -->
+    <footer class="border-t border-slate-800 bg-slate-950 py-8 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-2">
+                <div class="bg-emerald-600/10 p-1.5 rounded text-emerald-500">
+                    <i class="ph-bold ph-code"></i>
+                </div>
+                <span class="text-sm text-slate-400">© 2026 BookMate</span>
+            </div>
+            
+            <div class="flex gap-6 text-sm text-slate-500">
+                <a href="#" class="hover:text-emerald-400 transition-colors">Privacy Policy</a>
+                <a href="#" class="hover:text-emerald-400 transition-colors">Terms of Service</a>
+                <a href="#" class="hover:text-emerald-400 transition-colors">Contact</a>
+            </div>
         </div>
     </footer>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    
     {% block extra_js %}{% endblock %}
 </body>
 </html>

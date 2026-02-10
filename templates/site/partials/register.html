@@ -3,97 +3,36 @@
 {% block title %}Register{% endblock %}
 
 {% block content %}
-<div class="flex items-center justify-center min-h-screen">
+<div class="flex items-center justify-center min-h-[calc(100vh-80px)] relative overflow-hidden py-10">
+    
+    <!-- Background Ambient Glows -->
     <div class="absolute inset-0 overflow-hidden pointer-events-none">
-        <div class="absolute top-0 right-1/4 w-96 h-96 bg-blue-900 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
-        <div class="absolute bottom-0 left-1/4 w-96 h-96 bg-gray-800 rounded-full mix-blend-multiply filter blur-3xl opacity-20"></div>
+        <div class="absolute top-0 right-1/4 w-96 h-96 bg-emerald-900/30 rounded-full mix-blend-screen filter blur-3xl opacity-30 animate-pulse"></div>
+        <div class="absolute bottom-0 left-1/4 w-96 h-96 bg-slate-800/50 rounded-full mix-blend-screen filter blur-3xl opacity-30"></div>
     </div>
 
-    <div class="relative w-full max-w-md p-6">
-        <div class="bg-gray-800 border border-gray-700 rounded-2xl shadow-2xl p-8">
+    <div class="relative w-full max-w-md p-6 z-10">
+        <div class="bg-slate-900/80 backdrop-blur-xl border border-slate-800 rounded-2xl shadow-2xl p-8 ring-1 ring-white/5">
             
             <div class="text-center mb-8">
-                <div class="inline-flex items-center justify-center w-12 h-12 rounded-lg bg-blue-600/10 mb-4">
-                    <svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>
-                    </svg>
+                <div class="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 mb-4 shadow-[0_0_15px_rgba(16,185,129,0.2)]">
+                    <i class="ph-bold ph-user-plus text-2xl text-emerald-500"></i>
                 </div>
-                <h2 class="text-3xl font-bold text-white tracking-tight">Create Account</h2>
-                <p class="text-sm text-gray-400 mt-2">Join us and start managing your profile.</p>
+                <h2 class="text-2xl font-bold text-white tracking-tight">Create Account</h2>
+                <p class="text-sm text-slate-400 mt-2">While you can't register please try the account under.</p>
             </div>
 
-            <form action="{% url 'register' %}" method="POST" class="space-y-4">
-                {% csrf_token %}
-                
-                <div>
-                    <label for="email" class="block text-sm font-medium text-gray-300 mb-2">Email Address</label>
-                    <input 
-                        type="email" 
-                        name="email"
-                        id="email" 
-                        class="w-full bg-gray-900 border border-gray-600 text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-3 placeholder-gray-500 transition-colors" 
-                        placeholder="name@company.com" 
-                        required
-                    >
-                </div>
+            <div class="my-6 border-t border-slate-700/50"></div>
 
-                <div>
-                    <label for="username" class="block text-sm font-medium text-gray-300 mb-2">Username</label>
-                    <input 
-                        type="text" 
-                        name="username"
-                        id="username" 
-                        class="w-full bg-gray-900 border border-gray-600 text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-3 placeholder-gray-500 transition-colors" 
-                        placeholder="john_doe" 
-                        required
-                    >
-                </div>
-
-                <div>
-                    <label for="password" class="block text-sm font-medium text-gray-300 mb-2">Password</label>
-                    <input 
-                        type="password" 
-                        name="password"
-                        id="password" 
-                        class="w-full bg-gray-900 border border-gray-600 text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-3 placeholder-gray-500 transition-colors" 
-                        placeholder="••••••••" 
-                        required
-                    >
-                </div>
-
-                <div>
-                    <label for="confirm_password" class="block text-sm font-medium text-gray-300 mb-2">Confirm Password</label>
-                    <input 
-                        type="password" 
-                        name="confirm_password"
-                        id="confirm_password" 
-                        class="w-full bg-gray-900 border border-gray-600 text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-3 placeholder-gray-500 transition-colors" 
-                        placeholder="••••••••" 
-                        required
-                    >
-                </div>
-
-                <div class="pt-2">
-                    <button 
-                        type="submit" 
-                        class="w-full text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-800 font-medium rounded-lg text-sm px-5 py-3 text-center shadow-lg shadow-blue-500/30 transition-all transform hover:-translate-y-0.5"
-                    >
-                        Create Account
-                    </button>
-                </div>
-            </form>
-
-            <div class="my-6 border-t border-gray-700"></div>
-
-            <p class="text-center text-sm text-gray-400">
-                Already have an account? 
-                <a href="{% url 'login' %}" class="font-semibold text-blue-400 hover:text-blue-300 hover:underline">Sign in</a>
-            </p>
+            <div class="text-center text-sm text-slate-400">
+                <p>username: <span class="ml-2 text-blue-500">demo.account</span></p>
+                <p>password: <span class="pl-5 text-blue-500">#Welcome2026</span></p>
+            </div>
+            <div class="mt-5 text-center">
+                <a href="{% url 'login' %}" class="font-semibold text-emerald-400 hover:text-emerald-300 transition-colors">Sign in</a>
+            </div>
+            
         </div>
-
-        <p class="text-center text-gray-500 text-xs mt-6">
-            &copy; 2026 Your Company. All rights reserved.
-        </p>
     </div>
 </div>
 {% endblock %}
