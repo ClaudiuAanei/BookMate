@@ -23,4 +23,5 @@ def index(request):
     context["services"] = list(employee.services.all().values("id", "name", "duration", "price", "description")) or []
     context["calendar"] = calendar
 
+    print(context)
     return render(request, "employee/calendar/index.html", context)

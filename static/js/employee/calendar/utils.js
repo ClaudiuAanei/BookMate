@@ -7,7 +7,17 @@ Employee.calendarUtils = {
   pad2(n) { return String(n).padStart(2, "0"); },
   dayName(d) { return this.dayNames[d.getDay()]; },
   monthName(d) { return this.monthNames[d.getMonth()]; },
-  isWeekend(d) { const g = d.getDay(); return g === 0 || g === 6; },
+  isWeekend(d) {
+    const wd = Employee.calendarState?.workdays;
+    if (wd instanceof Set && wd.size) {
+      return !wd.has(d.getDay());
+    }
+
+    // fallback vechi: sâmbătă/duminică
+    const g = d.getDay();
+    return g === 0 || g === 6;
+  },
+
 
   fmtRange(startDate, columns) {
     const end = new Date(startDate);

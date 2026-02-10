@@ -53,6 +53,19 @@ endpoints: {
     const wt = prog.worktime || {};
     const lt = prog.launchtime || {};
 
+    // workdays: list of "0".."6" (strings) -> Set<number>
+    const rawWorkdays = prog.workdays;
+    if (Array.isArray(rawWorkdays) && rawWorkdays.length) {
+      S.workdays = new Set(
+        rawWorkdays
+          .map(x => Number(x))
+          .filter(n => Number.isFinite(n) && n >= 0 && n <= 6)
+      );
+    } else {
+      S.workdays = null; // fallback to weekend logic
+    }
+
+
     // parse "HH:MM" -> hour as number (08:00 -> 8)
     const hourFrom = (t) => Number(String(t || "0:0").split(":")[0] || 0);
 

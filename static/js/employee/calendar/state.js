@@ -4,6 +4,9 @@ Employee.calendarState = {
   startDate: null,
   selectedDate: null,
 
+  // working days as Set<Number> where JS getDay(): 0..6
+  workdays: null,
+
   // derived from navbar (store + DOM catalog)
   durationMin: 0,
   totalPrice: 0,

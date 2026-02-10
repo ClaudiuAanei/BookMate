@@ -32,7 +32,7 @@ class CustomUserAdmin(UserAdmin):
            request.GET.get("model_name") == "employee" and \
            request.GET.get("field_name") == "user":
 
-            queryset = queryset.filter(employee_profile__isnull=True)
+            queryset = queryset.filter(employee__isnull=True)
 
         return queryset, use_distinct
 
