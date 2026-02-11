@@ -9,13 +9,15 @@ https://docs.djangoproject.com/en/6.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
-
+import os
 from pathlib import Path
-from environ import Env
+from dotenv import load_dotenv
+from django.core.management.utils import get_random_secret_key
 
-env = Env()
-env.read_env()
-ENVIROMENT = env('ENVIROMENT') or 'development'
+load_dotenv()
+
+
+ENVIRONMENT = os.environ.get('ENVIRONMENT', default='development')
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -25,18 +27,18 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = env('SECRET_KEY')
-ENCRYPT_KEY = env('ENCRYPT_KEY')
+SECRET_KEY = os.environ.get('SECRET_KEY', default= get_random_secret_key())
+ENCRYPT_KEY = os.environ.get('ENCRYPT_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-# if ENVIROMENT == 'development':
-#     DEBUG = True
-# else:
-#     DEBUG = False
+DEBUG = os.environ.get("DJANGO_DEBUG") == "1"
 
-DEBUG = True
+ALLOWED_HOSTS = [".railway.app"]
 
-ALLOWED_HOSTS = ['127.0.0.1']
+CSRF_TRUSTED_ORIGINS = ["https://*.railway.app"]
+
+if DEBUG:
+    ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -67,6 +69,8 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+if ENVIRONMENT == 'production':
+    MIDDLEWARE.insert(1, 'whitenoise.middleware.WhiteNoiseMiddleware') 
 
 ROOT_URLCONF = 'config.urls'
 
@@ -140,5 +144,8 @@ STATIC_URL = 'static/'
 STATICFILES_DIRS = [
     BASE_DIR / "static",
 ]
+
+if not DEBUG:
+    STATIC_ROOT = BASE_DIR / "staticfiles"
 
 ACCOUNT_USERNAME_BLACKLIST = ['admin', 'accounts', 'profile', 'employee', 'client', 'developer-page']

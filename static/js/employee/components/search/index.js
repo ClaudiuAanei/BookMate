@@ -166,7 +166,7 @@ input.addEventListener("input", () => {
             </div>
           </div>
 
-          <button class="p-2 text-gray-500 hover:text-white hover:bg-white/10 rounded-lg transition-all shadow-sm border border-transparent hover:border-white/10 z-10"
+          <button class="p-2 cursor-pointer text-gray-500 hover:text-white hover:bg-white/10 rounded-lg transition-all shadow-sm border border-transparent hover:border-white/10 z-10"
                   data-client-row-edit data-client-id="${c.id}" type="button">
             <i class="ph ph-pencil-simple text-lg"></i>
           </button>

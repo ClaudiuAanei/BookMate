@@ -8,15 +8,17 @@ from django.forms import model_to_dict
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 
-
-@employee_required
+@employee_required # Only employees can access a CRUD method
 def create_appointment(request):
     if request.method != "POST":
         return JsonResponse({"error": "Method not allowed."}, status=405)
 
     data = json.loads(request.body)
+
+    # Process our requirment to create --> helpers.py
     appointment = process_appointment_form(request, data, by_employee= True)
 
+    # If the answare is an error will return a Json response
     if isinstance(appointment, JsonResponse):
         return appointment
 
@@ -27,6 +29,7 @@ def get_appointments(request):
     start = request.GET.get("start") or datetime.today().strftime('%Y-%m-%d')
     end = request.GET.get("end") or (datetime.today() + timedelta(days=10)).strftime('%Y-%m-%d')
 
+    # Filter all the appointments for a specific period of 10 days if the end variable doesn't have another input
     appointments = Appointment.objects.filter(
         employee=request.user.employee, 
         date__gte=start, date__lte=end,
@@ -52,7 +55,7 @@ def get_appointments(request):
     return JsonResponse({"appointments": data}, safe=False)
 
 
-@employee_required
+@employee_required 
 def get_appointment_details(request, appointment_id):
     appointment = get_object_or_404(Appointment, employee=request.user.employee, id=appointment_id)
 
@@ -86,7 +89,7 @@ def update_appointment_status(request, appointment_id):
         return JsonResponse({"error": "Invalid JSON"}, status=400)
     
     if new_status == appointment.status:
-        return JsonResponse({"message": f"The status is already {appointment.get_status_display()}"}, status=200)
+        return JsonResponse({"message": f"The status is already {(appointment.get_status_display()).lower()}"}, status=200)
 
     if new_status is None or new_status not in action:
         return JsonResponse({"error": "Invalid status."}, status=400)
@@ -94,7 +97,7 @@ def update_appointment_status(request, appointment_id):
     appointment.status = action[new_status]
     appointment.save()
     
-    return JsonResponse({'message': f"Appointment was successful changed to {appointment.get_status_display()}"}, status=200)
+    return JsonResponse({'message': f"Appointment was successful changed to {(appointment.get_status_display()).lower()}"}, status=200)
 
 @employee_required
 def move_appointment(request, appointment_id):
@@ -117,7 +120,7 @@ def move_appointment(request, appointment_id):
     if isinstance(result, JsonResponse):
         return result
 
-    return JsonResponse({"message": "Appointment moved."}, status=200)
+    return JsonResponse({"message": "Appointment was successful moved."}, status=200)
 
 @employee_required
 def update_appointment_services(request, appointment_id):

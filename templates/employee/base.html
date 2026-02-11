@@ -9,32 +9,6 @@
   <link rel="stylesheet" href="{% static 'css/employee/style.css' %}">
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
-    <script>
-      tailwind.config = {
-        darkMode: 'class',
-        theme: {
-          extend: {
-            colors: {
-              primary: '#09090b',
-              secondary: '#18181b',
-              accent: '#7c3aed'
-            },
-            fontFamily: {
-              sans: ['Inter', 'sans-serif'],
-            },
-            keyframes: {
-              pulse_slow: {
-                '0%, 100%': { opacity: '1' },
-                '50%': { opacity: '.8' },
-              }
-            },
-            animation: {
-              pulse_slow: 'pulse_slow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-            }
-          }
-        }
-      }
-    </script>
 
   {% block head %}{% endblock %}
 </head>
