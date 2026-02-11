@@ -69,7 +69,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
-if ENVIRONMENT == 'production':
+if not DEBUG:
     MIDDLEWARE.insert(1, 'whitenoise.middleware.WhiteNoiseMiddleware') 
 
 ROOT_URLCONF = 'config.urls'
@@ -101,6 +101,17 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+
+DATABASE_URL = os.environ.get("DATABASE_URL", default="")
+if DATABASE_URL:
+    import dj_database_url
+    
+    if DATABASE_URL.startswith("postgres://") or DATABASE_URL.startswith("postgresql://"):
+        DATABASES = {
+            "default": dj_database_url.config(
+                default=DATABASE_URL,
+            )
+        }
 
 AUTH_USER_MODEL = "users.User"
 

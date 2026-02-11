@@ -1,0 +1,24 @@
+@import "tailwindcss";
+
+@source "../../templates/site/**/*.html";
+@source "../../templates/site/partials/*.html";
+@source "../../templates/employee/_partials/*.html";
+@source "../../templates/employee/appointments/*.html";
+@source "../../templates/employee/calendar/*.html";
+@source "../../templates/employee/*.html";
+
+
+@source "../../static/js/employee/calendar/*.js";
+@source "../../static/js/employee/components/*.js";
+@source "../../static/js/employee/components/notifications/*.js";
+@source "../../static/js/employee/components/search/*.js";
+@source "../../static/js/employee/components/service_dropdown/*.js";
+@source "../../static/js/employee/core/*.js";
+@source "../../static/js/employee/modals/*.js";
+@source "../../static/js/employee/pages/*.js";
+@source "../../static/js/employee/shell/*.js";
+@source "../../static/js/employee/state/*.js";
+
+
+@source "../../static/css/employee/calendar/*.css";
+@source "../../static/css/employee/shell/*.css";

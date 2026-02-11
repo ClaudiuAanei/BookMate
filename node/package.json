@@ -1,0 +1,18 @@
+{
+  "name": "node",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+"scripts": {
+  "watch:css": "npx @tailwindcss/cli --config ./tailwind.config.cjs -i ./src/tailwind.css -o ../static/css/employee/style.css --watch",
+  "minify:css": "npx esbuild ../static/css/employee/style.css --minify --target=chrome100 --outfile=../static/css/employee/style.min.css"
+},
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@tailwindcss/cli": "^4.1.18",
+    "tailwindcss": "^4.1.18"
+  }
+}
