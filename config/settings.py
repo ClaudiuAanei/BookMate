@@ -114,7 +114,7 @@ if DATABASE_URL:
         }
 
 AUTH_USER_MODEL = "users.User"
-
+DATABASES["default"]["CONN_MAX_AGE"] = 60
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
 

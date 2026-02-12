@@ -34,8 +34,8 @@ def employee_required(func):
         if not request.user.is_authenticated:
 
             if request.content_type == 'application/json' or request.headers.get('x-requested-with') == 'XMLHttpRequest':
-                 return JsonResponse({"error": "Unauthorized"}, status=401)
-            return JsonResponse({"error": "Unauthorized"}, status=401)
+                 raise Http404()
+            raise Http404()
 
         if not getattr(request.user, "employee", None) and not request.user.is_staff:
             raise Http404()

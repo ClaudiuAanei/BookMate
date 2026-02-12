@@ -4,6 +4,12 @@ from django.conf import settings
 # Create your models here.
 class Appointment(models.Model):
 
+    class Meta:
+        indexes = [
+            models.Index(fields=["employee", "date"], name="appt_emp_date_idx"), 
+            models.Index(fields=["employee", "date", "start"], name="appt_emp_date_start_idx")
+            ]
+
     class Status(models.TextChoices):
         PENDING = "PEND", "Pending"
         CONFIRMED = "CONF", "Confirmed"

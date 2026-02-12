@@ -1,14 +1,25 @@
 from .models import Employee
 from .services import *
-from django.shortcuts import render, get_object_or_404
+from django.http import Http404
+from django.shortcuts import render
 from apps.appointments.helpers import employee_required
 # from django.contrib.auth.decorators import login_required
 
 
 @employee_required
 def index(request):
-    employee = get_object_or_404(Employee, user=request.user)
-    context = {}
+    employee = (
+        Employee.objects
+        .filter(user=request.user)
+        .prefetch_related(
+            "holidays",
+            "services",
+        )
+        .only("id", "program")  # ajustează dacă program e FK/OneToOne; vezi nota de mai jos
+        .first()
+    )
+    if not employee:
+        raise Http404()
 
     calendar = {
         "program": serialize_program(employee.program),
@@ -16,7 +27,12 @@ def index(request):
         "public_holidays": serialize_public_holiday(),
     }
 
-    context["calendar"] = calendar
-    context["services"] = list(employee.services.all().values("id", "name", "duration", "price", "description")) or []
+    services = list(
+        employee.services.all().values("id", "name", "duration", "price", "description")
+    )
 
+    context = {
+        "calendar": calendar,
+        "services": services,
+    }
     return render(request, "employee/calendar/index.html", context)

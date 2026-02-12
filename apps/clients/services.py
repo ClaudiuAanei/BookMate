@@ -14,19 +14,21 @@ def serialize_client(c):
 def search_clients(query):
     if not query:
         return []
-    
-    terms= query.split()
 
-    final_query = Q()
+    terms = [t for t in query.split() if t]
+    if not terms:
+        return []
+
+    qs = Client.objects.all()
 
     for term in terms:
-        term_query = (
-            Q(last_name__icontains=term) | 
-            Q(first_name__icontains=term) | 
-            Q(phone__icontains=term) | 
+        qs = qs.filter(
+            Q(last_name__icontains=term) |
+            Q(first_name__icontains=term) |
+            Q(phone__icontains=term) |
             Q(email__icontains=term)
         )
-        final_query &= term_query
 
-    
-    return Client.objects.filter(final_query).all()[:10].values("id", "first_name", "last_name", "phone", "email")
+    return list(
+        qs.values("id", "first_name", "last_name", "phone", "email")[:10]
+    )
