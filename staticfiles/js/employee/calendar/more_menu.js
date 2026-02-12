@@ -1,45 +1,97 @@
 window.Employee = window.Employee || {};
 
 Employee.calendarMoreMenu = {
+
+async refreshPillForSlot(slot) {
+  if (!slot || !slot.id) return;
+
+  const A = Employee.calendarActions;
+
+  // Forțează refetch de detalii (GET /details/)
+  slot._detailsLoaded = false;
+  await Employee.calendarData.ensureDetailsForSlot(slot);
+
+  // Reafișează pill-ul pe baza datelor actualizate
+  A.updateActionBar(slot, true);
+
+  // Redraw
+  Employee.calendarGrid.render();
+},
+
+
 async openSlotExtra(slot) {
   const S = Employee.calendarState;
+  const A = Employee.calendarActions;
 
-  // ✅ dacă aveai un booking slot selectat, îl ștergem când intri în "More"
+  // dacă aveai booking slot selectat, îl ștergem când intri în "More"
   if (S.bookedSlot) {
     S.clearSelection();
-    Employee.calendarActions.hidePill();
+    A.hidePill();
   }
 
-  // 🔁 dacă dai click din nou pe același slot -> retrigger animation
+  // retrigger animation la același slot (fără fetch nou)
   if (S.currentActiveSlotId === slot.id) {
-    const pill = Employee.calendarActions.el.pill;
+    const pill = A.el.pill;
     if (pill?.classList.contains("is-visible")) {
       pill.classList.remove("is-switching");
-      void pill.offsetWidth;          // force reflow => CSS animation restarts
+      void pill.offsetWidth;
       pill.classList.add("is-switching");
       setTimeout(() => pill.classList.remove("is-switching"), 150);
     }
     return;
   }
 
-
-  const pill = Employee.calendarActions.el.pill;
+  const pill = A.el.pill;
   const isVisible = pill.classList.contains("is-visible");
 
   S.currentActiveSlotId = slot.id;
 
+  // ✅ token: ultimul click câștigă
+  const reqId = ++S.moreReqSeq;
+
+  const startDotsLoading = () => {
+    S.loadingMoreSlotId = slot.id;
+    Employee.calendarGrid.startMoreSpinner();
+    Employee.calendarGrid.render();
+  };
+
+  const stopDotsLoadingIfCurrent = () => {
+    // oprește DOAR dacă acesta e încă request-ul curent
+    if (S.moreReqSeq !== reqId) return;
+    S.loadingMoreSlotId = null;
+    Employee.calendarGrid.stopMoreSpinner();
+    Employee.calendarGrid.render();
+  };
+
+  const doLoad = async () => {
+    // (opțional) dacă vrei și spinner în pill, lasă:
+    A.setPillLoading(true);
+    startDotsLoading();
+
+    try {
+      await Employee.calendarData.ensureDetailsForSlot(slot);
+
+      // dacă între timp user a dat click pe alt slot -> ignori rezultatul
+      if (S.moreReqSeq !== reqId) return;
+
+      A.updateActionBar(slot, true);
+    } finally {
+      // închizi loadere doar dacă e încă request-ul curent
+      stopDotsLoadingIfCurrent();
+      if (S.moreReqSeq === reqId) A.setPillLoading(false);
+
+      if (isVisible && S.moreReqSeq === reqId) {
+        requestAnimationFrame(() => pill.classList.remove("is-switching"));
+      }
+    }
+  };
+
   if (isVisible) {
     pill.classList.add("is-switching");
-    setTimeout(async () => {
-      await Employee.calendarData.ensureDetailsForSlot(slot);
-      Employee.calendarActions.updateActionBar(slot, true);
-      requestAnimationFrame(() => pill.classList.remove("is-switching"));
-    }, 150);
+    setTimeout(() => { doLoad(); }, 150);  // păstrează timing-ul tău
   } else {
-    await Employee.calendarData.ensureDetailsForSlot(slot);
-    Employee.calendarActions.updateActionBar(slot, true);
+    doLoad();
   }
-
 },
 
   async updateSlotStatus(status) {
@@ -56,17 +108,20 @@ async openSlotExtra(slot) {
       // 1) call backend
       const res = await Employee.calendarData.updateAppointmentStatus(id, status);
 
-      // 2) update UI local
+      // 2) update UI local + refresh pill doar pentru slotul ăsta
       if (idx !== -1) {
-        S.confirmedSlots[idx].status = status;
+        const slot = S.confirmedSlots[idx];
+        slot.status = status;
+
+        // redraw ca să vezi status color imediat
         Employee.calendarGrid.render();
+
+        // 🔥 refresh pill din backend (GET /details/) doar pentru slot
+        await this.refreshPillForSlot(slot);
       }
 
-      // 3) toast OK (folosește ce întoarce backend-ul dacă există)
-      const okMsg = res?.message || "Status updated.";
-      Employee.notify?.ok?.(okMsg);
-
-      Employee.calendarData.scheduleReload(1000);
+      // 3) toast OK
+      Employee.notify?.ok?.(res?.message || "Status updated.");
 
     } catch (err) {
       console.error(err);
@@ -195,20 +250,30 @@ async confirmMove() {
 
     // ✅ update local UI (mutăm slot-ul în calendar)
     const idx = S.confirmedSlots.findIndex(s => String(s.id) === String(appointmentId));
+    let slot = null;
+
     if (idx !== -1) {
-      S.confirmedSlots[idx].y = p.y;
-      S.confirmedSlots[idx].startTime = p.startTime;
-      S.confirmedSlots[idx].endTime = p.endTime;
-      S.confirmedSlots[idx].fullDate = p.fullDate;
+      slot = S.confirmedSlots[idx];
+      slot.y = p.y;
+      slot.startTime = p.startTime;
+      slot.endTime = p.endTime;
+      slot.fullDate = p.fullDate;
     }
 
-    // ✅ ieșim din move mode + rerender
+    // ieșim din move mode + rerender
     this.cancelMoveMode();
     Employee.calendarGrid.render();
 
-    const okMsg = res?.message || "Appointment moved.";
-    Employee.notify?.ok?.(okMsg);
-    Employee.calendarData.scheduleReload(1000);
+    // 🔥 dacă slot există, redeschidem pill-ul și îl refresh-uim din backend
+    if (slot) {
+      S.currentActiveSlotId = slot.id;      // setăm iar “slot activ”
+      await this.refreshPillForSlot(slot);  // GET /details + update pill
+    }
+
+    Employee.notify?.ok?.(res?.message || "Appointment moved.");
+
+    // ❌ scoate reload complet
+    // Employee.calendarData.scheduleReload(1000);
 
   } catch (err) {
     console.error(err);

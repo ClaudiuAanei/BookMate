@@ -42,6 +42,30 @@ Employee.calendarGrid = {
     this.mousePos = { x: -1000, y: -1000, col: -1 };
   },
 
+  _moreSpinRaf: 0,
+
+  startMoreSpinner() {
+    if (this._moreSpinRaf) return;
+
+    const tick = () => {
+      this.render();
+      // continuă doar dacă încă există slot “loading”
+      if (Employee.calendarState.loadingMoreSlotId != null) {
+        this._moreSpinRaf = requestAnimationFrame(tick);
+      } else {
+        this._moreSpinRaf = 0;
+      }
+    };
+
+    this._moreSpinRaf = requestAnimationFrame(tick);
+  },
+
+  stopMoreSpinner() {
+    if (this._moreSpinRaf) cancelAnimationFrame(this._moreSpinRaf);
+    this._moreSpinRaf = 0;
+  },
+
+
   render() {
     const C = Employee.calendarConfig;
     const S = Employee.calendarState;
@@ -394,12 +418,29 @@ for (let i = 0; i < C.COLUMNS; i++) {
         ctx.fill();
       }
 
-      ctx.fillStyle = "#fff";
-      [0, 4, 8].forEach(off => {
-        ctx.beginPath();
-        ctx.arc(dotX, slot.y + 10 + off, 1.2, 0, Math.PI * 2);
-        ctx.fill();
-      });
+const isLoadingMore =
+  String(Employee.calendarState.loadingMoreSlotId) === String(slot.id);
+
+if (isLoadingMore) {
+  // mini spinner desenat pe canvas
+  const t = performance.now();
+  const a = (t / 300) % (Math.PI * 2);
+
+  ctx.strokeStyle = "rgba(255,255,255,0.85)";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(dotX, dotCenterY, 6, a, a + Math.PI * 1.3);
+  ctx.stroke();
+} else {
+  // normal: 3 dots
+  ctx.fillStyle = "#fff";
+  [0, 4, 8].forEach(off => {
+    ctx.beginPath();
+    ctx.arc(dotX, slot.y + 10 + off, 1.2, 0, Math.PI * 2);
+    ctx.fill();
+  });
+}
+
 
       ctx.restore();
     }

@@ -21,6 +21,45 @@ function setButtonLoading(btn, loading) {
   }
 }
 
+function ensureMiniSpinner(el) {
+  if (!el) return null;
+
+  // dacă există deja, nu mai adăugăm
+  let sp = el.querySelector(".mini-spinner");
+  if (sp) return sp;
+
+  // asigură context pentru overlay
+  el.classList.add("relative");
+
+  sp = document.createElement("span");
+  sp.className = "mini-spinner hidden absolute inset-0 items-center justify-center";
+  sp.innerHTML = `
+    <svg class="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
+      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+    </svg>
+  `;
+  el.appendChild(sp);
+  return sp;
+}
+
+function setIconLoading(el, loading) {
+  if (!el) return;
+
+  const sp = ensureMiniSpinner(el);
+
+  if (loading) {
+    el.classList.add("pointer-events-none", "opacity-60");
+    sp?.classList.remove("hidden");
+    sp?.classList.add("flex");
+  } else {
+    el.classList.remove("pointer-events-none", "opacity-60");
+    sp?.classList.add("hidden");
+    sp?.classList.remove("flex");
+  }
+}
+
+
 Employee.calendarActions = {
   el: {},
 
@@ -93,6 +132,9 @@ Employee.calendarActions = {
     el.moveCancel = root.querySelector("[data-cal-move-cancel]");
     el.moveConfirm = root.querySelector("[data-cal-move-confirm]");
 
+    el.loading = root.querySelector("[data-cal-loading]");
+    el.pillLoading = root.querySelector("[data-cal-pill-loading]");
+
     // top nav handlers
     this._bindTopControls();
     this._bindPill();
@@ -104,6 +146,37 @@ Employee.calendarActions = {
   _editBackup: null,
   _editSaved: false,
 
+  showLoading() {
+    const o = this.el.loading;
+    if (!o) return;
+    o.classList.remove("hidden");
+    o.classList.add("flex");
+  },
+
+  hideLoading() {
+    const o = this.el.loading;
+    if (!o) return;
+    o.classList.add("hidden");
+    o.classList.remove("flex");
+  },
+
+  setPillLoading(loading) {
+  const sp = this.el.pillLoading;
+  if (!sp) return;
+
+  if (loading) {
+    sp.classList.remove("hidden");
+    sp.classList.add("flex");
+
+    // opțional: blochează acțiunile cât timp încarcă
+    this.el.grpMng?.classList.add("pointer-events-none", "opacity-70");
+  } else {
+    sp.classList.add("hidden");
+    sp.classList.remove("flex");
+
+    this.el.grpMng?.classList.remove("pointer-events-none", "opacity-70");
+  }
+},
 
   _bindTopControls() {
     const S = Employee.calendarState;
@@ -195,10 +268,34 @@ this.el.btnQuickNav?.addEventListener("click", (e) => {
     });
 
     // management actions
-    this.el.btnMngConfirm?.addEventListener("click", () => Employee.calendarMoreMenu.updateSlotStatus("confirmed"));
-    this.el.btnMngComplete?.addEventListener("click", () => Employee.calendarMoreMenu.updateSlotStatus("completed"));
-    this.el.btnMngNoShow?.addEventListener("click", () => Employee.calendarMoreMenu.updateSlotStatus("noshow"));
-    this.el.btnMngDecline?.addEventListener("click", () => Employee.calendarMoreMenu.updateSlotStatus("declined"));
+this.el.btnMngConfirm?.addEventListener("click", async () => {
+  const el = this.el.btnMngConfirm;
+  setIconLoading(el, true);
+  try { await Employee.calendarMoreMenu.updateSlotStatus("confirmed"); }
+  finally { setIconLoading(el, false); }
+});
+
+this.el.btnMngComplete?.addEventListener("click", async () => {
+  const el = this.el.btnMngComplete;
+  setIconLoading(el, true);
+  try { await Employee.calendarMoreMenu.updateSlotStatus("completed"); }
+  finally { setIconLoading(el, false); }
+});
+
+this.el.btnMngNoShow?.addEventListener("click", async () => {
+  const el = this.el.btnMngNoShow;
+  setIconLoading(el, true);
+  try { await Employee.calendarMoreMenu.updateSlotStatus("noshow"); }
+  finally { setIconLoading(el, false); }
+});
+
+this.el.btnMngDecline?.addEventListener("click", async () => {
+  const el = this.el.btnMngDecline;
+  setIconLoading(el, true);
+  try { await Employee.calendarMoreMenu.updateSlotStatus("declined"); }
+  finally { setIconLoading(el, false); }
+});
+
 
     this.el.btnMngMove?.addEventListener("click", () => Employee.calendarMoreMenu.startMoveMode());
     this.el.btnMngEdit?.addEventListener("click", () => this.openEditServices());
@@ -237,7 +334,15 @@ this.el.btnQuickNav?.addEventListener("click", (e) => {
     });
 
 
-    el.editSave?.addEventListener("click", () => this.saveEditServices());
+    el.editSave?.addEventListener("click", async () => {
+      const btn = el.editSave;
+      if (btn.disabled) return;
+
+      setButtonLoading(btn, true);
+      try { await this.saveEditServices(); }
+      finally { setButtonLoading(btn, false); }
+    });
+
   },
 
   hidePill() {
@@ -689,8 +794,7 @@ async saveEditServices() {
     Employee.calendarState.currentActiveSlotId = null;
     this.hidePill();
 
-
-    Employee.calendarData.scheduleReload?.(1000);
+    await Employee.calendarMoreMenu.refreshPillForSlot(slot);
 
   } catch (err) {
     console.error(err);

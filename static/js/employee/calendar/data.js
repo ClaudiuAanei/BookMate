@@ -165,73 +165,80 @@ async fetchSlots(rangeStart, rangeEnd) {
 },
 
 async loadRangeAndRender() {
-  const C = Employee.calendarConfig;
-  const S = Employee.calendarState;
-  const U = Employee.calendarUtils;
-  const K = Employee.calendarCompute;
+  const A = Employee.calendarActions;
+  A?.showLoading?.();
 
-  if (!S.startDate) return;
-
-  // rangeStart
-  const rangeStart = new Date(S.startDate);
-  rangeStart.setHours(0,0,0,0);
-
-  // rangeEnd (CORECT: definit înainte de URL)
-  const rangeEnd = new Date(rangeStart);
-  rangeEnd.setDate(rangeEnd.getDate() + (C.COLUMNS - 1));
-  rangeEnd.setHours(0,0,0,0);
-
-  // 🔗 sync URL (start + end)
   try {
-    const params = new URLSearchParams(window.location.search);
-    params.set("start", U.toDateKey(rangeStart));
-    params.set("end", U.toDateKey(rangeEnd));
+    const C = Employee.calendarConfig;
+    const S = Employee.calendarState;
+    const U = Employee.calendarUtils;
+    const K = Employee.calendarCompute;
 
-    const newUrl = `${window.location.pathname}?${params.toString()}`;
-    window.history.replaceState({}, "", newUrl);
-  } catch (e) {}
+    if (!S.startDate) return;
 
-  // fetch
-  let rows = [];
-  try {
-    rows = await this.fetchSlots(rangeStart, rangeEnd);
-  } catch (e) {
-    console.error(e);
-    Employee.notify?.err?.("Failed to load appointments.");
-    rows = [];
+    // rangeStart
+    const rangeStart = new Date(S.startDate);
+    rangeStart.setHours(0,0,0,0);
+
+    // rangeEnd
+    const rangeEnd = new Date(rangeStart);
+    rangeEnd.setDate(rangeEnd.getDate() + (C.COLUMNS - 1));
+    rangeEnd.setHours(0,0,0,0);
+
+    // 🔗 sync URL (start + end)
+    try {
+      const params = new URLSearchParams(window.location.search);
+      params.set("start", U.toDateKey(rangeStart));
+      params.set("end", U.toDateKey(rangeEnd));
+      const newUrl = `${window.location.pathname}?${params.toString()}`;
+      window.history.replaceState({}, "", newUrl);
+    } catch (e) {}
+
+    // fetch
+    let rows = [];
+    try {
+      rows = await this.fetchSlots(rangeStart, rangeEnd);
+    } catch (e) {
+      console.error(e);
+      Employee.notify?.err?.("Failed to load appointments.");
+      rows = [];
+    }
+
+    S.confirmedSlots = rows.map(a => {
+      const dateObj = U.parseDateOnly(a.date);
+      const fullDate = dateObj.getTime();
+
+      const startStr = String(a.start || "").slice(0,5);
+      const endStr   = String(a.end || "").slice(0,5);
+
+      const [sh, sm] = startStr.split(":").map(Number);
+      const [eh, em] = endStr.split(":").map(Number);
+      const duration = Math.max(5, ((eh*60+em) - (sh*60+sm)) || 0);
+
+      return {
+        id: a.id,
+        fullDate,
+        y: K.calculateYFromTime(startStr),
+        duration,
+        startTime: startStr,
+        endTime: endStr,
+        status: this._mapStatus(a.status),
+        clientName: a.client || "Client",
+        email: "",
+        phone: "",
+        services: "",
+        serviceIds: [],
+        price: null,
+        _detailsLoaded: false,
+      };
+    });
+
+    Employee.calendarGrid.render();
+    requestAnimationFrame(() => Employee.calendarSelection.refreshPreview());
+
+  } finally {
+    A?.hideLoading?.();         
   }
-
-  S.confirmedSlots = rows.map(a => {
-    const dateObj = U.parseDateOnly(a.date);
-    const fullDate = dateObj.getTime();
-
-    const startStr = String(a.start || "").slice(0,5);
-    const endStr   = String(a.end || "").slice(0,5);
-
-    const [sh, sm] = startStr.split(":").map(Number);
-    const [eh, em] = endStr.split(":").map(Number);
-    const duration = Math.max(5, ((eh*60+em) - (sh*60+sm)) || 0);
-
-    return {
-      id: a.id,
-      fullDate,
-      y: K.calculateYFromTime(startStr),
-      duration,
-      startTime: startStr,
-      endTime: endStr,
-      status: this._mapStatus(a.status),
-      clientName: a.client || "Client",
-      email: "",
-      phone: "",
-      services: "",
-      serviceIds: [],
-      price: null,
-      _detailsLoaded: false,
-    };
-  });
-
-  Employee.calendarGrid.render();
-  requestAnimationFrame(() => Employee.calendarSelection.refreshPreview());
 },
 
   async fetchAppointmentDetails(appointmentId) {

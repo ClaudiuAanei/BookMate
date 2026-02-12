@@ -37,6 +37,8 @@ Employee.calendarState = {
   // labels for blocked days: Map<"YYYY-MM-DD", string>
   blockedDayLabels: new Map(),
 
+  moreReqSeq: 0,
+  loadingMoreSlotId: null,
 
   clearSelection() {
     this.bookedSlot = null;

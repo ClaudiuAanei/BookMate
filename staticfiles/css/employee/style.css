@@ -398,6 +398,9 @@
   .z-\[100\] {
     z-index: 100;
   }
+  .z-\[150\] {
+    z-index: 150;
+  }
   .z-\[200\] {
     z-index: 200;
   }
@@ -658,6 +661,9 @@
   }
   .w-5 {
     width: calc(var(--spacing) * 5);
+  }
+  .w-6 {
+    width: calc(var(--spacing) * 6);
   }
   .w-8 {
     width: calc(var(--spacing) * 8);
@@ -1771,6 +1777,10 @@
     --tw-tracking: .14em;
     letter-spacing: .14em;
   }
+  .tracking-\[\.15em\] {
+    --tw-tracking: .15em;
+    letter-spacing: .15em;
+  }
   .tracking-\[0\.2em\] {
     --tw-tracking: 0.2em;
     letter-spacing: 0.2em;
@@ -1940,6 +1950,12 @@
   }
   .opacity-50 {
     opacity: 50%;
+  }
+  .opacity-60 {
+    opacity: 60%;
+  }
+  .opacity-70 {
+    opacity: 70%;
   }
   .opacity-75 {
     opacity: 75%;
