@@ -16,6 +16,7 @@ def get_form_error_message(form):
 def process_appointment_form(request, form_data, by_employee=False, instance=None):
     """Process the form for creating/updating an appointment"""
     employee = request.user.employee
+    print(employee)
     form = AppointmentForm(form_data, employee=employee, by_employee=by_employee, instance=instance)
     
     if not form.is_valid():
@@ -36,7 +37,7 @@ def employee_required(func):
                  return JsonResponse({"error": "Unauthorized"}, status=401)
             return JsonResponse({"error": "Unauthorized"}, status=401)
 
-        if not getattr(request.user, "employee", None) or not request.user.is_staff:
+        if not getattr(request.user, "employee", None) and not request.user.is_staff:
             raise Http404()
         
         return func(request, *args, **kwargs)

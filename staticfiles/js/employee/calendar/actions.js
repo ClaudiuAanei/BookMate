@@ -1,5 +1,26 @@
 window.Employee = window.Employee || {};
 
+function setButtonLoading(btn, loading) {
+  if (!btn) return;
+
+  const label = btn.querySelector(".btn-label");
+  const spinner = btn.querySelector(".btn-spinner");
+
+  if (loading) {
+    btn.disabled = true;
+    btn.classList.add("pointer-events-none");
+    label?.classList.add("opacity-0");
+    spinner?.classList.remove("hidden");
+    spinner?.classList.add("flex");
+  } else {
+    btn.disabled = false;
+    btn.classList.remove("pointer-events-none");
+    label?.classList.remove("opacity-0");
+    spinner?.classList.add("hidden");
+    spinner?.classList.remove("flex");
+  }
+}
+
 Employee.calendarActions = {
   el: {},
 
@@ -203,7 +224,18 @@ this.el.btnQuickNav?.addEventListener("click", (e) => {
     el.moveCard?.addEventListener("click", (e) => e.stopPropagation());
 
     el.moveCancel?.addEventListener("click", () => this.closeMoveModal());
-    el.moveConfirm?.addEventListener("click", () => Employee.calendarMoreMenu.confirmMove());
+    el.moveConfirm?.addEventListener("click", async () => {
+      const btn = el.moveConfirm;
+      if (btn.disabled) return;
+
+      setButtonLoading(btn, true);
+      try {
+        await Employee.calendarMoreMenu.confirmMove();
+      } finally {
+        setButtonLoading(btn, false);
+      }
+    });
+
 
     el.editSave?.addEventListener("click", () => this.saveEditServices());
   },
@@ -297,6 +329,10 @@ if (slot.isOvertime && !S.overtimeAgreed) {
   bookNow: async function () {
   const S = Employee.calendarState;
   const store = Employee.store;
+  const btn = this.el.btnBook;
+  if (btn?.disabled) return;
+  setButtonLoading(btn, true);
+
 
   if (!S.bookedSlot) return;
 
@@ -373,6 +409,9 @@ try {
     "Failed to book appointment.";
 
   Employee.notify.err(serverMsg);
+
+} finally {
+  setButtonLoading(btn, false);
 }
 },
 

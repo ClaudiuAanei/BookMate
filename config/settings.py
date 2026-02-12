@@ -50,7 +50,6 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'admin_honeypot',
     'apps.employees.apps.EmployeesConfig',
     'apps.clients',
     'apps.program',
@@ -58,6 +57,7 @@ INSTALLED_APPS = [
     'apps.notifications',
     "apps.users.apps.UsersConfig",
     "apps.appointments.apps.AppointmentsConfig",
+    "commando"
 ]
 
 MIDDLEWARE = [
@@ -105,7 +105,7 @@ DATABASES = {
 DATABASE_URL = os.environ.get("DATABASE_URL", default="")
 if DATABASE_URL:
     import dj_database_url
-    
+
     if DATABASE_URL.startswith("postgres://") or DATABASE_URL.startswith("postgresql://"):
         DATABASES = {
             "default": dj_database_url.config(
