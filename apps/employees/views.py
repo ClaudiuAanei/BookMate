@@ -15,7 +15,7 @@ def index(request):
             "holidays",
             "services",
         )
-        .only("id", "program")  # ajustează dacă program e FK/OneToOne; vezi nota de mai jos
+        .only("id", "program") 
         .first()
     )
     if not employee:

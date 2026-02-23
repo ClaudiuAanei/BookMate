@@ -73,15 +73,20 @@ def get_appointment_details(request, appointment_id):
         .filter(employee=request.user.employee, id=appointment_id)
         .select_related("client")
         .prefetch_related("services")
-        .only("id", "price", "client__id", "client__phone", "client__email", "client__first_name", "client__last_name")
         .first()
     )
     if not appointment:
         return JsonResponse({"error": "Not found."}, status=404)
 
-    c = appointment.client
-    services = list(appointment.services.values("id", "name", "duration", "price"))
+    services = [{
+        "id": s.id,
+        "name": s.name,
+        "duration": s.duration,
+        "price": s.price
+    } for s in appointment.services.all()]
 
+    c = appointment.client
+    
     return JsonResponse({
         "id": appointment.id,
         "client": {
